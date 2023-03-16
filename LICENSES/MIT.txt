@@ -1,4 +1,4 @@
-MIT License
+The MIT License (MIT)
 
 Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
 
