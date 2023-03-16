@@ -1,6 +1,6 @@
 ![Version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/src/zabapgit_starter.prog.abap/c_version&label=Version&color=blue)
 
-[![License](https://img.shields.io/github/license/Marc-Bernard-Tools/ABAP-XXX?label=License&color=green)](LICENSE)
+[![License](https://img.shields.io/github/license/Marc-Bernard-Tools/ABAP-Tools-for-abapGit?label=License&color=green)](LICENSE)
 [![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?color=green)](CODE_OF_CONDUCT.md)
 
