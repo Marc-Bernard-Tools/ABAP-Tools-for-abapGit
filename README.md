@@ -18,15 +18,15 @@ NO WARRANTIES, [MIT License](LICENSE)
 
 The starter is a simple program that lets you define variants for running abapGit. You can pick between developer or standalone version and starting up with the repository list, the last repository, or a specific repository based on a repository key or SAP package.
 
-![Starter][img/abapgit_starter.png]
+![Starter](img/abapgit_starter.png)
 
 ### abapGit Repository Labels
 
 A tool for doing mass-maintenance of repository labels. Quickly display, add, or remove labels based on free selection of repository name, package, or URL.
 
-![Repo Labels][img/abapgit_repo_labels_1.png]
+![Repo Labels](img/abapgit_repo_labels_1.png)
 
-![Repo Labels][img/abapgit_repo_labels_2.png]
+![Repo Labels](img/abapgit_repo_labels_2.png)
 
 ## Prerequisites
 
