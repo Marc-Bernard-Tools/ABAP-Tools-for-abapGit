@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>ZABAPGIT_STARTER</NAME>
+    <NAME>ZABAPGIT_REPO_LABELS</NAME>
     <SUBC>1</SUBC>
     <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
@@ -12,8 +12,8 @@
    <TPOOL>
     <item>
      <ID>R</ID>
-     <ENTRY>abapGit: Starter</ENTRY>
-     <LENGTH>24</LENGTH>
+     <ENTRY>abapGit: Repository Labels</ENTRY>
+     <LENGTH>52</LENGTH>
     </item>
    </TPOOL>
   </asx:values>
