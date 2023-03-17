@@ -35,7 +35,7 @@ REPORT zabapgit_starter.
 * SPDX-License-Identifier: MIT
 ********************************************************************************
 
-CONSTANTS c_version TYPE string VALUE '1.0.0'.
+CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
 
 SELECTION-SCREEN SKIP 1.
 
@@ -107,22 +107,25 @@ START-OF-SELECTION.
     li_repo     TYPE REF TO zif_abapgit_repo,
     lv_reason   TYPE string.
 
-  IF p_list = abap_true.
-    zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( || ).
-  ELSEIF p_repo = abap_true.
-    li_repo_srv = zcl_abapgit_repo_srv=>get_instance( ).
-    li_repo_srv->get_repo_from_package(
-      EXPORTING
-        iv_package = p_pack
-      IMPORTING
-        ei_repo    = li_repo
-        ev_reason  = lv_reason ).
-    IF li_repo IS INITIAL.
-      MESSAGE lv_reason TYPE 'S'.
-      RETURN.
-    ENDIF.
-    zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
-  ENDIF.
+  CASE abap_true.
+    WHEN p_list.
+      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( || ).
+    WHEN p_last.
+      " Use default behavior
+    WHEN p_repo.
+      li_repo_srv = zcl_abapgit_repo_srv=>get_instance( ).
+      li_repo_srv->get_repo_from_package(
+        EXPORTING
+          iv_package = p_pack
+        IMPORTING
+          ei_repo    = li_repo
+          ev_reason  = lv_reason ).
+      IF li_repo IS INITIAL.
+        MESSAGE lv_reason TYPE 'S'.
+        RETURN.
+      ENDIF.
+      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
+  ENDCASE.
 
   IF p_devel = abap_true.
     SUBMIT zabapgit.

@@ -32,7 +32,7 @@ REPORT zabapgit_repo_labels.
 * SOFTWARE.
 ********************************************************************************
 
-CONSTANTS c_version TYPE string VALUE '1.0.0'.
+CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
 
 TABLES: tdevc, tdevct.
 
@@ -183,8 +183,13 @@ START-OF-SELECTION.
 
   PERFORM get.
 
-  IF p_add = abap_true OR p_remove = abap_true.
-    PERFORM add_remove.
-  ENDIF.
+  CASE abap_true.
+    WHEN p_list.
+      " Just show labels
+    WHEN p_add.
+      PERFORM add_remove.
+    WHEN p_remove.
+      PERFORM add_remove.
+  ENDCASE.
 
   PERFORM list.
