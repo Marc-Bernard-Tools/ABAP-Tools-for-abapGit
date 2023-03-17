@@ -28,6 +28,12 @@ A tool for doing mass-maintenance of repository labels. Quickly display, add, or
 
 ![Repo Labels](img/abapgit_repo_labels_2.png)
 
+### abapGit SSL Test
+
+For convenience, the repository contains the SSL test tool found in the abapGit [documentation](https://docs.abapgit.org/guide-ssl-test.html).
+
+![SSL Test](img/abapgit_ssl_test.png)
+
 ## Prerequisites
 
 - SAP Basis 7.02 or higher
