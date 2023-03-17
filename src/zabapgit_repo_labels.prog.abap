@@ -235,11 +235,11 @@ START-OF-SELECTION.
 
   CASE abap_true.
     WHEN p_list.
-      " Just show labels
+      PERFORM list.
     WHEN p_add.
       PERFORM add_remove.
+      PERFORM list.
     WHEN p_remove.
       PERFORM add_remove.
+      PERFORM list.
   ENDCASE.
-
-  PERFORM list.
