@@ -11,9 +11,63 @@
    </PROGDIR>
    <TPOOL>
     <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Repository Selection</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>Action</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+    <item>
      <ID>R</ID>
      <ENTRY>abapGit: Repository Labels</ENTRY>
-     <LENGTH>52</LENGTH>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ADD</KEY>
+     <ENTRY>Add Labels</ENTRY>
+     <LENGTH>18</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_LIST</KEY>
+     <ENTRY>Show All Labels</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_REMOVE</KEY>
+     <ENTRY>Remove Labels</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_LABEL</KEY>
+     <ENTRY>Labels</ENTRY>
+     <LENGTH>14</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_NAME</KEY>
+     <ENTRY>Name</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_PACK</KEY>
+     <ENTRY>Package</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_URL</KEY>
+     <ENTRY>URL</ENTRY>
+     <LENGTH>11</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

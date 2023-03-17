@@ -60,46 +60,19 @@ SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-002.
   PARAMETERS:
     p_list RADIOBUTTON GROUP g2 DEFAULT 'X' USER-COMMAND repo,
     p_last RADIOBUTTON GROUP g2,
-    p_repo RADIOBUTTON GROUP g2.
+    p_repo RADIOBUTTON GROUP g2,
+    p_pack TYPE tdevc-devclass MODIF ID pac.
 SELECTION-SCREEN END OF BLOCK b2.
-
-SELECTION-SCREEN SKIP 1.
-
-SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-003.
-  PARAMETERS:
-    p_key    RADIOBUTTON GROUP g3 DEFAULT 'X' USER-COMMAND key MODIF ID key,
-    p_key_v  TYPE zif_abapgit_persistence=>ty_repo-key MODIF ID kev,
-    p_pack   RADIOBUTTON GROUP g3 MODIF ID pac,
-    p_pack_v TYPE tdevc-devclass MODIF ID pav.
-SELECTION-SCREEN END OF BLOCK b3.
 
 FORM screen.
 
-  DATA:
-    lv_show  TYPE abap_bool,
-    lv_input TYPE abap_bool.
+  DATA lv_input TYPE abap_bool.
 
   LOOP AT SCREEN.
-    lv_show = abap_true.
-    lv_input = abap_true.
-
-    CASE screen-group1.
-      WHEN 'KEY'. " Repo Key
-        lv_input = boolc( p_repo = abap_true ).
-      WHEN 'KEV'. " Repo Key
-        lv_input = boolc( p_repo = abap_true AND p_key = abap_true ).
-      WHEN 'PAC'. " SAP Package
-        lv_input = boolc( p_repo = abap_true ).
-      WHEN 'PAV'. " SAP Package
-        lv_input = boolc( p_repo = abap_true AND p_pack = abap_true ).
-    ENDCASE.
-
-    IF lv_show = abap_true.
-      screen-active    = '1'.
-      screen-invisible = '0'.
+    IF screen-group1 = 'PAC'.
+      lv_input = boolc( p_repo = abap_true ).
     ELSE.
-      screen-active    = '0'.
-      screen-invisible = '1'.
+      lv_input = abap_true.
     ENDIF.
 
     IF lv_input = abap_true.
@@ -119,22 +92,6 @@ INITIALIZATION.
   sc_t002 = '- Create a transaction for your variant'.
   sc_t003 = '- Enjoy using a tcode for your favorite repository'.
 
-  %_p_devel_%_app_%-text  = 'Developer Version'.
-  %_p_stand_%_app_%-text  = 'Standalone Version'.
-
-  %_p_list_%_app_%-text   = 'Repository List'.
-  %_p_last_%_app_%-text   = 'Last Repository'.
-  %_p_repo_%_app_%-text   = 'Specific Repository'.
-
-  %_p_key_%_app_%-text    = 'Repository Key'.
-  %_p_key_v_%_app_%-text  = 'Key'.
-  %_p_pack_%_app_%-text   = 'Repository Package'.
-  %_p_pack_v_%_app_%-text = 'Package'.
-
-  %b001007_block_1000     = 'abapGit Version'.
-  %b002012_block_1000     = 'Repository Type'.
-  %b003018_block_1000     = 'Repository Selection'.
-
 AT SELECTION-SCREEN.
 
   PERFORM screen.
@@ -146,29 +103,25 @@ AT SELECTION-SCREEN OUTPUT.
 START-OF-SELECTION.
 
   DATA:
+    li_repo_srv TYPE REF TO zif_abapgit_repo_srv,
     li_repo     TYPE REF TO zif_abapgit_repo,
-    lv_reason   TYPE string,
-    lv_repo_key LIKE p_key_v.
+    lv_reason   TYPE string.
 
   IF p_list = abap_true.
     zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( || ).
   ELSEIF p_repo = abap_true.
-    IF p_key = abap_true.
-      lv_repo_key = p_key_v.
-    ELSE.
-      zcl_abapgit_repo_srv=>get_instance( )->get_repo_from_package(
-        EXPORTING
-          iv_package = p_pack_v
-        IMPORTING
-          ei_repo    = li_repo
-          ev_reason  = lv_reason ).
-      IF li_repo IS INITIAL.
-        MESSAGE lv_reason TYPE 'S'.
-        RETURN.
-      ENDIF.
-      lv_repo_key = li_repo->get_key( ).
+    li_repo_srv = zcl_abapgit_repo_srv=>get_instance( ).
+    li_repo_srv->get_repo_from_package(
+      EXPORTING
+        iv_package = p_pack
+      IMPORTING
+        ei_repo    = li_repo
+        ev_reason  = lv_reason ).
+    IF li_repo IS INITIAL.
+      MESSAGE lv_reason TYPE 'S'.
+      RETURN.
     ENDIF.
-    zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( lv_repo_key ).
+    zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
   ENDIF.
 
   IF p_devel = abap_true.

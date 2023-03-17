@@ -38,9 +38,9 @@ TABLES: tdevc, tdevct.
 
 SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
   SELECT-OPTIONS:
-    so_name FOR tdevct-ctext LOWER CASE,
-    so_pack FOR tdevc-devclass,
-    so_url  FOR tdevct-ctext LOWER CASE.
+    s_name FOR tdevct-ctext LOWER CASE,
+    s_pack FOR tdevc-devclass,
+    s_url  FOR tdevct-ctext LOWER CASE.
 SELECTION-SCREEN END OF BLOCK b1.
 
 SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-002.
@@ -49,12 +49,13 @@ SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-002.
     p_add    RADIOBUTTON GROUP g1,
     p_remove RADIOBUTTON GROUP g1.
   SELECT-OPTIONS:
-    so_label FOR tdevct-ctext LOWER CASE NO INTERVALS.
+    s_label FOR tdevct-ctext LOWER CASE NO INTERVALS.
 SELECTION-SCREEN END OF BLOCK b2.
 
 DATA gt_repos TYPE zif_abapgit_repo_srv=>ty_repo_list.
 
 FORM get.
+
   DATA:
     lo_online  TYPE REF TO zcl_abapgit_repo_online,
     lv_name    TYPE string,
@@ -78,7 +79,7 @@ FORM get.
           lv_url = ''.
         ENDIF.
 
-        IF NOT ( lv_name IN so_name AND lv_package IN so_pack AND lv_url IN so_url ).
+        IF NOT ( lv_name IN s_name AND lv_package IN s_pack AND lv_url IN s_url ).
           DELETE gt_repos.
         ENDIF.
       ENDLOOP.
@@ -132,13 +133,15 @@ FORM add_remove.
   DATA:
     li_repo     TYPE REF TO zcl_abapgit_repo,
     ls_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
-    lv_label    TYPE string.
+    lv_label    TYPE string,
+    lt_labels   TYPE STANDARD TABLE OF string,
+    lx_error    TYPE REF TO zcx_abapgit_exception.
 
   FIELD-SYMBOLS:
     <li_repo>  TYPE REF TO zif_abapgit_repo,
-    <lv_label> LIKE LINE OF so_label.
+    <lv_label> LIKE LINE OF s_label.
 
-  IF so_label IS INITIAL.
+  IF s_label IS INITIAL.
     MESSAGE 'Enter at least one label' TYPE 'I'.
     RETURN.
   ENDIF.
@@ -148,9 +151,9 @@ FORM add_remove.
 
     ls_settings = li_repo->get_local_settings( ).
 
-    SPLIT ls_settings-labels AT ',' INTO TABLE DATA(lt_labels).
+    SPLIT ls_settings-labels AT ',' INTO TABLE lt_labels.
 
-    LOOP AT so_label ASSIGNING <lv_label>.
+    LOOP AT s_label ASSIGNING <lv_label>.
       lv_label = condense( <lv_label>-low ).
       READ TABLE lt_labels TRANSPORTING NO FIELDS WITH KEY table_line = lv_label.
       IF sy-subrc <> 0 AND p_add = abap_true.
@@ -167,24 +170,12 @@ FORM add_remove.
     TRY.
         li_repo->set_local_settings( ls_settings ).
         COMMIT WORK AND WAIT.
-      CATCH zcx_abapgit_exception INTO DATA(lx_error).
+      CATCH zcx_abapgit_exception INTO lx_error.
         MESSAGE lx_error TYPE 'I'.
     ENDTRY.
   ENDLOOP.
 
 ENDFORM.
-
-INITIALIZATION.
-
-  %_so_name_%_app_%-text  = 'Name'.
-  %_so_pack_%_app_%-text  = 'Package'.
-  %_so_url_%_app_%-text   = 'URL'.
-  %_so_label_%_app_%-text = 'Labels'.
-  %_p_list_%_app_%-text   = 'Show All Labels'.
-  %_p_add_%_app_%-text    = 'Add Labels'.
-  %_p_remove_%_app_%-text = 'Remove Labels'.
-  %b001000_block_1000     = 'Repository Selection'.
-  %b002005_block_1000     = 'Action'.
 
 START-OF-SELECTION.
 

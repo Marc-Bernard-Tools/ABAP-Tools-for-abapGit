@@ -11,9 +11,69 @@
    </PROGDIR>
    <TPOOL>
     <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>abapGit Version</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>Repository Selection</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+    <item>
      <ID>R</ID>
      <ENTRY>abapGit: Starter</ENTRY>
-     <LENGTH>24</LENGTH>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_DEVEL</KEY>
+     <ENTRY>Developer Version</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_KEY</KEY>
+     <ENTRY>Repository Key</ENTRY>
+     <LENGTH>22</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_LAST</KEY>
+     <ENTRY>Last Repository</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_LIST</KEY>
+     <ENTRY>Repository List</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PACK</KEY>
+     <ENTRY>Repository Package</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PACK_V</KEY>
+     <ENTRY>Package</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_REPO</KEY>
+     <ENTRY>Specific Repository</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_STAND</KEY>
+     <ENTRY>Standalone Version</ENTRY>
+     <LENGTH>26</LENGTH>
     </item>
    </TPOOL>
   </asx:values>
