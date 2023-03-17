@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>ZABAPGIT_STARTER</NAME>
+    <NAME>ZABAPGIT_TEST_SSL</NAME>
     <SUBC>1</SUBC>
     <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
@@ -12,43 +12,49 @@
    <TPOOL>
     <item>
      <ID>R</ID>
-     <ENTRY>abapGit Starter</ENTRY>
+     <ENTRY>abapGit SSL Test</ENTRY>
      <LENGTH>16</LENGTH>
     </item>
     <item>
      <ID>S</ID>
-     <KEY>P_DEVEL</KEY>
-     <ENTRY>Developer Version</ENTRY>
-     <LENGTH>25</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
-     <KEY>P_LAST</KEY>
-     <ENTRY>Last Repository</ENTRY>
-     <LENGTH>23</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
-     <KEY>P_LIST</KEY>
-     <ENTRY>Repository List</ENTRY>
-     <LENGTH>23</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
-     <KEY>P_PACK</KEY>
-     <ENTRY>Repository Package</ENTRY>
-     <LENGTH>26</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
-     <KEY>P_REPO</KEY>
-     <ENTRY>Specific Repository</ENTRY>
+     <KEY>P_ID</KEY>
+     <ENTRY>SSL Client Identity</ENTRY>
      <LENGTH>27</LENGTH>
     </item>
     <item>
      <ID>S</ID>
-     <KEY>P_STAND</KEY>
-     <ENTRY>Standalone Version</ENTRY>
+     <KEY>P_PPORT</KEY>
+     <ENTRY>Port</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PPWD</KEY>
+     <ENTRY>Password</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PROXY</KEY>
+     <ENTRY>Hostname/IP</ENTRY>
+     <LENGTH>19</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PUSER</KEY>
+     <ENTRY>Username</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_URL1</KEY>
+     <ENTRY>URL (Read Access)</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_URL2</KEY>
+     <ENTRY>URL (Write Access)</ENTRY>
      <LENGTH>26</LENGTH>
     </item>
    </TPOOL>

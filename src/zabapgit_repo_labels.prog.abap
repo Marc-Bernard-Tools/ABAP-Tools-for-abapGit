@@ -36,21 +36,33 @@ CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
 
 TABLES: tdevc, tdevct.
 
-SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+SELECTION-SCREEN BEGIN OF BLOCK sc_header WITH FRAME TITLE sc_titl0.
+  SELECTION-SCREEN:
+  SKIP,
+  COMMENT /1(77) sc_txt1,
+  COMMENT /1(77) sc_txt2,
+  COMMENT /1(77) sc_txt3.
+SELECTION-SCREEN END OF BLOCK sc_header.
+
+SELECTION-SCREEN SKIP.
+
+SELECTION-SCREEN BEGIN OF BLOCK sc_repo WITH FRAME TITLE sc_titl1.
   SELECT-OPTIONS:
     s_name FOR tdevct-ctext LOWER CASE,
     s_pack FOR tdevc-devclass,
     s_url  FOR tdevct-ctext LOWER CASE.
-SELECTION-SCREEN END OF BLOCK b1.
+SELECTION-SCREEN END OF BLOCK sc_repo.
 
-SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-002.
+SELECTION-SCREEN SKIP.
+
+SELECTION-SCREEN BEGIN OF BLOCK sc_label WITH FRAME TITLE sc_titl2.
   PARAMETERS:
     p_list   RADIOBUTTON GROUP g1 DEFAULT 'X',
     p_add    RADIOBUTTON GROUP g1,
     p_remove RADIOBUTTON GROUP g1.
   SELECT-OPTIONS:
     s_label FOR tdevct-ctext LOWER CASE NO INTERVALS.
-SELECTION-SCREEN END OF BLOCK b2.
+SELECTION-SCREEN END OF BLOCK sc_label.
 
 DATA gt_repos TYPE zif_abapgit_repo_srv=>ty_repo_list.
 
@@ -100,7 +112,6 @@ FORM list.
 
   DATA:
     lo_online   TYPE REF TO zcl_abapgit_repo_online,
-    li_repo     TYPE REF TO zif_abapgit_repo,
     ls_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
     ls_alv      TYPE ty_alv,
     lt_alv      TYPE STANDARD TABLE OF ty_alv WITH DEFAULT KEY.
@@ -178,6 +189,15 @@ FORM add_remove.
   ENDLOOP.
 
 ENDFORM.
+
+INITIALIZATION.
+
+  sc_titl0 = 'Description'.
+  sc_txt1  = 'This is a tool for mass-maintenance of repository labels. Quickly'.
+  sc_txt2  = 'display, add, or remove labels based on free selection of repository'.
+  sc_txt3  = 'name, package, or URL.'.
+  sc_titl1 = 'Repository Selection'.
+  sc_titl2 = 'Action'.
 
 START-OF-SELECTION.
 

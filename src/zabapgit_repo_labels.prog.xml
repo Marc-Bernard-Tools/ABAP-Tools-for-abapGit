@@ -11,21 +11,9 @@
    </PROGDIR>
    <TPOOL>
     <item>
-     <ID>I</ID>
-     <KEY>001</KEY>
-     <ENTRY>Repository Selection</ENTRY>
-     <LENGTH>60</LENGTH>
-    </item>
-    <item>
-     <ID>I</ID>
-     <KEY>002</KEY>
-     <ENTRY>Action</ENTRY>
-     <LENGTH>60</LENGTH>
-    </item>
-    <item>
      <ID>R</ID>
-     <ENTRY>abapGit: Repository Labels</ENTRY>
-     <LENGTH>26</LENGTH>
+     <ENTRY>abapGit Repository Labels</ENTRY>
+     <LENGTH>25</LENGTH>
     </item>
     <item>
      <ID>S</ID>

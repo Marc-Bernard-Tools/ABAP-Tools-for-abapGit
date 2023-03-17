@@ -37,32 +37,33 @@ REPORT zabapgit_starter.
 
 CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
 
-SELECTION-SCREEN SKIP 1.
-
-SELECTION-SCREEN BEGIN OF BLOCK b0 WITH FRAME.
+SELECTION-SCREEN BEGIN OF BLOCK sc_header WITH FRAME TITLE sc_titl0.
   SELECTION-SCREEN:
-  COMMENT /1(77) sc_t001,
-  COMMENT /1(77) sc_t002,
-  COMMENT /1(77) sc_t003.
-SELECTION-SCREEN END OF BLOCK b0.
+  SKIP,
+  COMMENT /1(77) sc_txt0,
+  SKIP,
+  COMMENT /1(77) sc_txt1,
+  COMMENT /1(77) sc_txt2,
+  COMMENT /1(77) sc_txt3.
+SELECTION-SCREEN END OF BLOCK sc_header.
 
-SELECTION-SCREEN SKIP 1.
+SELECTION-SCREEN SKIP.
 
-SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+SELECTION-SCREEN BEGIN OF BLOCK sc_version WITH FRAME TITLE sc_titl1.
   PARAMETERS:
     p_devel RADIOBUTTON GROUP g1 DEFAULT 'X',
     p_stand RADIOBUTTON GROUP g1.
-SELECTION-SCREEN END OF BLOCK b1.
+SELECTION-SCREEN END OF BLOCK sc_version.
 
-SELECTION-SCREEN SKIP 1.
+SELECTION-SCREEN SKIP.
 
-SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-002.
+SELECTION-SCREEN BEGIN OF BLOCK sc_repo WITH FRAME TITLE sc_titl2.
   PARAMETERS:
     p_list RADIOBUTTON GROUP g2 DEFAULT 'X' USER-COMMAND repo,
     p_last RADIOBUTTON GROUP g2,
     p_repo RADIOBUTTON GROUP g2,
     p_pack TYPE tdevc-devclass MODIF ID pac.
-SELECTION-SCREEN END OF BLOCK b2.
+SELECTION-SCREEN END OF BLOCK sc_repo.
 
 FORM screen.
 
@@ -88,9 +89,13 @@ ENDFORM.
 
 INITIALIZATION.
 
-  sc_t001 = '- Save your favorite option as a variant'.
-  sc_t002 = '- Create a transaction for your variant'.
-  sc_t003 = '- Enjoy using a tcode for your favorite repository'.
+  sc_titl0 = 'Description'.
+  sc_txt0  = 'Simple tool that lets you define variants for running abapGit'.
+  sc_txt1  = '- Save your favorite option as a variant'.
+  sc_txt2  = '- Create a transaction for your variant'.
+  sc_txt3  = '- Enjoy using a tcode for your favorite repository'.
+  sc_titl1 = 'abapGit Version'.
+  sc_titl2 = 'Repository Selection'.
 
 AT SELECTION-SCREEN.
 
@@ -110,8 +115,10 @@ START-OF-SELECTION.
   CASE abap_true.
     WHEN p_list.
       zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( || ).
+      MESSAGE 'Starting with Repository List' TYPE 'S'.
     WHEN p_last.
       " Use default behavior
+      MESSAGE 'Starting with Last Repository' TYPE 'S'.
     WHEN p_repo.
       li_repo_srv = zcl_abapgit_repo_srv=>get_instance( ).
       li_repo_srv->get_repo_from_package(
@@ -121,14 +128,19 @@ START-OF-SELECTION.
           ei_repo    = li_repo
           ev_reason  = lv_reason ).
       IF li_repo IS INITIAL.
-        MESSAGE lv_reason TYPE 'S'.
+        IF lv_reason IS INITIAL.
+          MESSAGE 'No repository found that includes package' TYPE 'S'.
+        ELSE.
+          MESSAGE lv_reason TYPE 'S'.
+        ENDIF.
         RETURN.
       ENDIF.
       zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
   ENDCASE.
 
-  IF p_devel = abap_true.
-    SUBMIT zabapgit.
-  ELSE.
-    SUBMIT zabapgit_standalone.
-  ENDIF.
+  CASE abap_true.
+    WHEN p_devel.
+      SUBMIT zabapgit.
+    WHEN p_stand.
+      SUBMIT zabapgit_standalone.
+  ENDCASE.
