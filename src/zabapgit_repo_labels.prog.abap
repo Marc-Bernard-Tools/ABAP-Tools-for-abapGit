@@ -55,18 +55,25 @@ SELECTION-SCREEN END OF BLOCK b2.
 DATA gt_repos TYPE zif_abapgit_repo_srv=>ty_repo_list.
 
 FORM get.
-  DATA lo_online TYPE REF TO zcl_abapgit_repo_online.
+  DATA:
+    lo_online  TYPE REF TO zcl_abapgit_repo_online,
+    lv_name    TYPE string,
+    lv_package TYPE devclass,
+    lv_url     TYPE string,
+    lx_error   TYPE REF TO zcx_abapgit_exception.
+
+  FIELD-SYMBOLS <li_repo> TYPE REF TO zif_abapgit_repo.
 
   TRY.
       gt_repos = zcl_abapgit_repo_srv=>get_instance( )->list( ).
 
-      LOOP AT gt_repos ASSIGNING FIELD-SYMBOL(<lo_repo>).
-        DATA(lv_name)    = <lo_repo>->get_name( ).
-        DATA(lv_package) = <lo_repo>->get_package( ).
+      LOOP AT gt_repos ASSIGNING <li_repo>.
+        lv_name    = <li_repo>->get_name( ).
+        lv_package = <li_repo>->get_package( ).
 
-        IF <lo_repo>->is_offline( ) = abap_false.
-          lo_online ?= <lo_repo>.
-          DATA(lv_url) = lo_online->get_url( ).
+        IF <li_repo>->is_offline( ) = abap_false.
+          lo_online ?= <li_repo>.
+          lv_url = lo_online->get_url( ).
         ELSE.
           lv_url = ''.
         ENDIF.
@@ -75,7 +82,7 @@ FORM get.
           DELETE gt_repos.
         ENDIF.
       ENDLOOP.
-    CATCH zcx_abapgit_exception INTO DATA(lx_error).
+    CATCH zcx_abapgit_exception INTO lx_error.
       MESSAGE lx_error TYPE 'E'.
   ENDTRY.
 ENDFORM.
@@ -91,18 +98,20 @@ FORM list.
     END OF ty_alv.
 
   DATA:
-    lo_online TYPE REF TO zcl_abapgit_repo_online,
-    ls_alv    TYPE ty_alv,
-    lt_alv    TYPE STANDARD TABLE OF ty_alv WITH DEFAULT KEY.
+    lo_online   TYPE REF TO zcl_abapgit_repo_online,
+    li_repo     TYPE REF TO zif_abapgit_repo,
+    ls_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
+    ls_alv      TYPE ty_alv,
+    lt_alv      TYPE STANDARD TABLE OF ty_alv WITH DEFAULT KEY.
 
-  LOOP AT gt_repos ASSIGNING FIELD-SYMBOL(<lo_repo>).
-    DATA(ls_settings) = <lo_repo>->get_local_settings( ).
+  LOOP AT gt_repos ASSIGNING FIELD-SYMBOL(<li_repo>).
+    ls_settings = <li_repo>->get_local_settings( ).
 
     CLEAR ls_alv.
-    ls_alv-name    = <lo_repo>->get_name( ).
-    ls_alv-package = <lo_repo>->get_package( ).
-    IF <lo_repo>->is_offline( ) = abap_false.
-      lo_online ?= <lo_repo>.
+    ls_alv-name    = <li_repo>->get_name( ).
+    ls_alv-package = <li_repo>->get_package( ).
+    IF <li_repo>->is_offline( ) = abap_false.
+      lo_online ?= <li_repo>.
       ls_alv-url = lo_online->get_url( ).
     ENDIF.
     ls_alv-labels  = ls_settings-labels.
@@ -120,22 +129,29 @@ ENDFORM.
 
 FORM add_remove.
 
-  DATA lo_repo TYPE REF TO zcl_abapgit_repo.
+  DATA:
+    li_repo     TYPE REF TO zcl_abapgit_repo,
+    ls_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
+    lv_label    TYPE string.
+
+  FIELD-SYMBOLS:
+    <li_repo>  TYPE REF TO zif_abapgit_repo,
+    <lv_label> LIKE LINE OF so_label.
 
   IF so_label IS INITIAL.
     MESSAGE 'Enter at least one label' TYPE 'I'.
     RETURN.
   ENDIF.
 
-  LOOP AT gt_repos ASSIGNING FIELD-SYMBOL(<lo_repo>).
-    lo_repo ?= <lo_repo>.
+  LOOP AT gt_repos ASSIGNING <li_repo>.
+    li_repo ?= <li_repo>.
 
-    DATA(ls_settings) = lo_repo->get_local_settings( ).
+    ls_settings = li_repo->get_local_settings( ).
 
     SPLIT ls_settings-labels AT ',' INTO TABLE DATA(lt_labels).
 
-    LOOP AT so_label ASSIGNING FIELD-SYMBOL(<lv_label>).
-      DATA(lv_label) = condense( <lv_label>-low ).
+    LOOP AT so_label ASSIGNING <lv_label>.
+      lv_label = condense( <lv_label>-low ).
       READ TABLE lt_labels TRANSPORTING NO FIELDS WITH KEY table_line = lv_label.
       IF sy-subrc <> 0 AND p_add = abap_true.
         INSERT lv_label INTO TABLE lt_labels.
@@ -149,7 +165,7 @@ FORM add_remove.
     ls_settings-labels = zcl_abapgit_repo_labels=>normalize( lv_label ).
 
     TRY.
-        lo_repo->set_local_settings( ls_settings ).
+        li_repo->set_local_settings( ls_settings ).
         COMMIT WORK AND WAIT.
       CATCH zcx_abapgit_exception INTO DATA(lx_error).
         MESSAGE lx_error TYPE 'I'.
