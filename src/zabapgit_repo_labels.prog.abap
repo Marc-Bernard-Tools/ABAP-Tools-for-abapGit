@@ -57,11 +57,11 @@ SELECTION-SCREEN SKIP.
 
 SELECTION-SCREEN BEGIN OF BLOCK sc_label WITH FRAME TITLE sc_titl2.
   PARAMETERS:
-    p_list   RADIOBUTTON GROUP g1 DEFAULT 'X',
+    p_list   RADIOBUTTON GROUP g1 DEFAULT 'X' USER-COMMAND lar,
     p_add    RADIOBUTTON GROUP g1,
     p_remove RADIOBUTTON GROUP g1.
   SELECT-OPTIONS:
-    s_label FOR tdevct-ctext LOWER CASE NO INTERVALS.
+    s_label FOR tdevct-ctext LOWER CASE NO INTERVALS MODIF ID lab.
 SELECTION-SCREEN END OF BLOCK sc_label.
 
 DATA gt_repos TYPE zif_abapgit_repo_srv=>ty_repo_list.
@@ -190,6 +190,28 @@ FORM add_remove.
 
 ENDFORM.
 
+FORM screen.
+
+  DATA lv_input TYPE abap_bool.
+
+  LOOP AT SCREEN.
+    IF screen-group1 = 'LAB'.
+      lv_input = boolc( p_add = abap_true OR p_remove = abap_true ).
+    ELSE.
+      lv_input = abap_true.
+    ENDIF.
+
+    IF lv_input = abap_true.
+      screen-input = '1'.
+    ELSE.
+      screen-input = '0'.
+    ENDIF.
+
+    MODIFY SCREEN.
+  ENDLOOP.
+
+ENDFORM.
+
 INITIALIZATION.
 
   sc_titl0 = 'Description'.
@@ -198,6 +220,14 @@ INITIALIZATION.
   sc_txt3  = 'name, package, or URL.'.
   sc_titl1 = 'Repository Selection'.
   sc_titl2 = 'Action'.
+
+AT SELECTION-SCREEN.
+
+  PERFORM screen.
+
+AT SELECTION-SCREEN OUTPUT.
+
+  PERFORM screen.
 
 START-OF-SELECTION.
 

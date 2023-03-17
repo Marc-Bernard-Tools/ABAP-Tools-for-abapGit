@@ -118,12 +118,10 @@ CLASS lcl_report IMPLEMENTATION.
   METHOD run.
 
     DATA:
-      lv_code          TYPE i,
-      lv_url           TYPE string,
-      li_http_client   TYPE REF TO if_http_client,
-      lv_error_message TYPE string,
-      lv_reason        TYPE string,
-      lv_response      TYPE string.
+      lv_code        TYPE i,
+      li_http_client TYPE REF TO if_http_client,
+      lv_reason      TYPE string,
+      lv_response    TYPE string.
 
     IF iv_url IS INITIAL.
       RETURN.
@@ -167,9 +165,7 @@ CLASS lcl_report IMPLEMENTATION.
     IF sy-subrc <> 0.
       display_error( 'HTTP Client Receive' ).
 
-      li_http_client->get_last_error(
-        IMPORTING
-          message = lv_response ).
+      li_http_client->get_last_error( IMPORTING message = lv_response ).
 
       display_messages( lv_response ).
 
