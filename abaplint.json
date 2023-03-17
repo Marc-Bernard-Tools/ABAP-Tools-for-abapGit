@@ -45,6 +45,7 @@
         "CLAS",
         "DEVC",
         "INTF",
+        "PROG",
         "W3MI"
       ],
       "exclude": [],
@@ -424,7 +425,7 @@
       "ignoreExceptions": true,
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false,
-      "selectionScreenBlockIndentation": false,
+      "selectionScreenBlockIndentation": true,
       "severity": "Error"
     },
     "inline_data_old_versions": {
