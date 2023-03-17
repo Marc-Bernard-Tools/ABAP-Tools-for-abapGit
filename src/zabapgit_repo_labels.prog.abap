@@ -105,7 +105,9 @@ FORM list.
     ls_alv      TYPE ty_alv,
     lt_alv      TYPE STANDARD TABLE OF ty_alv WITH DEFAULT KEY.
 
-  LOOP AT gt_repos ASSIGNING FIELD-SYMBOL(<li_repo>).
+  FIELD-SYMBOLS <li_repo> TYPE REF TO zif_abapgit_repo.
+
+  LOOP AT gt_repos ASSIGNING <li_repo>.
     ls_settings = <li_repo>->get_local_settings( ).
 
     CLEAR ls_alv.
