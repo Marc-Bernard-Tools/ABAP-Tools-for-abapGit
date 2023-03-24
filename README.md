@@ -1,8 +1,8 @@
 ![Version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/src/zabapgit_starter.prog.abap/c_version&label=Version&color=blue)
 
 [![License](https://img.shields.io/github/license/Marc-Bernard-Tools/ABAP-Tools-for-abapGit?label=License&color=green)](LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=green)](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md)
 [![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?color=green)](CODE_OF_CONDUCT.md)
 
 # Tools for abapGit
 
@@ -47,7 +47,7 @@ Recommend SAP package: `$ABAPGIT-TOOLS`.
 
 ## Contributions
 
-All contributions are welcome! Read our [Contribution Guidelines](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md), fork this repo, and create a pull request.
+All contributions are welcome! Read our [Contribution Guidelines](CONTRIBUTING.md), fork this repo, and create a pull request.
 
 ## About
 
