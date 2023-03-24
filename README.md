@@ -47,7 +47,7 @@ Recommend SAP package: `$ABAPGIT-TOOLS`.
 
 ## Contributions
 
-All contributions are welcome! Read our [Contribution Guidelines](CONTRIBUTING.md), fork this repo, and create a pull request.
+All contributions are welcome! Read our [Contribution Guidelines](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md), fork this repo, and create a pull request.
 
 ## About
 
