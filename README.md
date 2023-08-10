@@ -6,7 +6,7 @@
 
 # Tools for abapGit
 
-This is a collection of little helpers and pain killers for abapGit. Enjoy! :grin:
+This is a collection of little helpers and painkillers for abapGit. Enjoy! :grin:
 
 Made by [Marc Bernard Tools](https://marcbernardtools.com/) giving back to the [SAP Community](https://community.sap.com/)
 
@@ -16,17 +16,23 @@ NO WARRANTIES, [MIT License](LICENSE)
 
 ### abapGit Starter
 
-The starter is a simple program that lets you define variants for running abapGit. You can pick between developer or standalone version and starting up with the repository list, the last repository, or a specific repository based on a repository key or SAP package.
+The starter is a simple program that lets you define variants for running abapGit. You can pick between the developer or standalone version and starting up with the repository list, the last repository, or a specific repository based on a repository key or SAP package.
 
 ![Starter](img/abapgit_starter.png)
 
 ### abapGit Repository Labels
 
-A tool for doing mass-maintenance of repository labels. Quickly display, add, or remove labels based on free selection of repository name, package, or URL.
+A tool for doing mass maintenance of repository labels. Quickly display, add, or remove labels based on a free selection of repository names, packages, or URLs.
 
 ![Repo Labels](img/abapgit_repo_labels_1.png)
 
 ![Repo Labels](img/abapgit_repo_labels_2.png)
+
+### abapGit Scheduler
+
+A tool that lets you run the background logic for selected abapGit repositories.
+
+![Scheduler](img/abapgit_scheduler.png)
 
 ### abapGit SSL Test
 
@@ -41,7 +47,7 @@ For convenience, the repository contains the SSL test tool found in the abapGit 
 
 ## Installation
 
-You can install the tools using [abapGit](https://github.com/abapGit/abapGit) either creating a new online repository for https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit or downloading the repository [ZIP file](https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/archive/main.zip) and creating a new offline repository.
+You can install the tools using [abapGit](https://github.com/abapGit/abapGit) either by creating a new online repository for https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit or downloading the repository [ZIP file](https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/archive/main.zip) and creating a new offline repository.
 
 Recommend SAP package: `$ABAPGIT-TOOLS`.
 
