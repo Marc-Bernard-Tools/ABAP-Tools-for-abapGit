@@ -54,10 +54,10 @@ SELECTION-SCREEN SKIP.
 SELECTION-SCREEN BEGIN OF BLOCK sc_repo WITH FRAME TITLE sc_titl1.
   SELECTION-SCREEN SKIP.
   PARAMETERS p_pack RADIOBUTTON GROUP g1 DEFAULT 'X' USER-COMMAND repo.
-  SELECT-OPTIONS so_pack FOR gv_pack MODIF ID pac.
+  SELECT-OPTIONS s_pack FOR gv_pack MODIF ID pac.
   SELECTION-SCREEN SKIP.
   PARAMETERS p_repo RADIOBUTTON GROUP g1.
-  SELECT-OPTIONS so_repo FOR gv_repo MODIF ID rep.
+  SELECT-OPTIONS s_repo FOR gv_repo MODIF ID rep.
   SELECTION-SCREEN SKIP.
 SELECTION-SCREEN END OF BLOCK sc_repo.
 
@@ -141,9 +141,9 @@ FORM run.
 
         CASE abap_true.
           WHEN p_pack.
-            CHECK lv_package IN so_pack.
+            CHECK lv_package IN s_pack.
           WHEN p_repo.
-            CHECK lv_repo_name IN so_repo.
+            CHECK lv_repo_name IN s_repo.
         ENDCASE.
 
         WRITE: / <ls_list>-method, lv_repo_name.
@@ -193,9 +193,9 @@ AT SELECTION-SCREEN OUTPUT.
 
 START-OF-SELECTION.
 
-  IF p_pack = abap_true AND so_pack IS INITIAL.
+  IF p_pack = abap_true AND s_pack IS INITIAL.
     MESSAGE e000(oo) WITH 'Select at least one package'.
-  ELSEIF p_repo = abap_true AND so_repo IS INITIAL.
+  ELSEIF p_repo = abap_true AND s_repo IS INITIAL.
     MESSAGE e000(oo) WITH 'Enter at least one repository name'.
   ENDIF.
 
