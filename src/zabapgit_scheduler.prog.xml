@@ -5,6 +5,7 @@
    <PROGDIR>
     <NAME>ZABAPGIT_SCHEDULER</NAME>
     <SUBC>1</SUBC>
+    <APPL>*</APPL>
     <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
     <UCCHECK>X</UCCHECK>
@@ -29,13 +30,13 @@
     </item>
     <item>
      <ID>S</ID>
-     <KEY>SO_PACK</KEY>
+     <KEY>S_PACK</KEY>
      <ENTRY>Repository Package</ENTRY>
      <LENGTH>26</LENGTH>
     </item>
     <item>
      <ID>S</ID>
-     <KEY>SO_REPO</KEY>
+     <KEY>S_REPO</KEY>
      <ENTRY>Repository Name</ENTRY>
      <LENGTH>23</LENGTH>
     </item>
