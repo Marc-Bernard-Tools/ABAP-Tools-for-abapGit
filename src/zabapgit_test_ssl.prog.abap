@@ -1,6 +1,6 @@
 REPORT zabapgit_test_ssl.
 
-data x type ref xxx. 
+*** NEW COMMENT ***
 
 ********************************************************************************
 * abapGit SSL Tester
