@@ -95,8 +95,6 @@ INITIALIZATION.
 
 FORM run.
 
-  CONSTANTS lc_enq_type TYPE c LENGTH 12 VALUE 'BACKGROUND'.
-
   DATA: lo_per        TYPE REF TO zcl_abapgit_persist_background,
         lo_repo       TYPE REF TO zcl_abapgit_repo_online,
         lt_list       TYPE zcl_abapgit_persist_background=>ty_background_keys,
@@ -108,21 +106,9 @@ FORM run.
 
   FIELD-SYMBOLS <ls_list> LIKE LINE OF lt_list.
 
-  CALL FUNCTION 'ENQUEUE_EZABAPGIT'
-    EXPORTING
-      mode_zabapgit  = 'E'
-      type           = lc_enq_type
-      _scope         = '3'
-    EXCEPTIONS
-      foreign_lock   = 1
-      system_failure = 2
-      OTHERS         = 3.
-  IF sy-subrc <> 0.
-    WRITE: / 'Another intance of the program is already running'.
-    RETURN.
-  ENDIF.
-
   TRY.
+      zcl_abapgit_background=>enqueue( ).
+
       CREATE OBJECT lo_per.
       lt_list = lo_per->list( ).
 
@@ -177,9 +163,7 @@ FORM run.
     WRITE / 'Nothing configured'.
   ENDIF.
 
-  CALL FUNCTION 'DEQUEUE_EZABAPGIT'
-    EXPORTING
-      type = lc_enq_type.
+  zcl_abapgit_background=>dequeue( ).
 
 ENDFORM.
 
