@@ -1,5 +1,7 @@
 REPORT zabapgit_test_ssl.
 
+*** NEW COMMENT ***
+
 ********************************************************************************
 * abapGit SSL Tester
 *
