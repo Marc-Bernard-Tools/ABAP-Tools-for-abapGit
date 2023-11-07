@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_PROG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>ZABAPGIT_REPO_TRANSFER</NAME>
+    <SUBC>1</SUBC>
+    <RLOAD>E</RLOAD>
+    <FIXPT>X</FIXPT>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>R</ID>
+     <ENTRY>abapGit Repository Transfer</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_BACKUP</KEY>
+     <ENTRY>Backup</ENTRY>
+     <LENGTH>14</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_CHKSUM</KEY>
+     <ENTRY>Ignore Checksums</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FAVOR</KEY>
+     <ENTRY>Only Favorities</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_GLOBAL</KEY>
+     <ENTRY>Global Settings</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_OFFLIN</KEY>
+     <ENTRY>Offline Repositories</ENTRY>
+     <LENGTH>28</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ONLINE</KEY>
+     <ENTRY>Online Repositories</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PULL</KEY>
+     <ENTRY>Pull Repositories</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_RESTOR</KEY>
+     <ENTRY>Restore</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_USER</KEY>
+     <ENTRY>User Settings</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_NAME</KEY>
+     <ENTRY>Name</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_PACK</KEY>
+     <ENTRY>Package</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_URL</KEY>
+     <ENTRY>URL</ENTRY>
+     <LENGTH>11</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_USER</KEY>
+     <ENTRY>Users</ENTRY>
+     <LENGTH>13</LENGTH>
+    </item>
+   </TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>
