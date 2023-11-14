@@ -106,6 +106,18 @@ CLASS lcl_gui DEFINITION.
     CONSTANTS c_cols TYPE i VALUE 6.
 
     TYPES:
+      ty_p TYPE p LENGTH 10 DECIMALS 4,
+      BEGIN OF ty_group,
+        id    TYPE n LENGTH 2,
+        group TYPE string,
+      END OF ty_group,
+      ty_groups TYPE STANDARD TABLE OF ty_group WITH KEY id,
+      BEGIN OF ty_group_color,
+        id    TYPE n LENGTH 2,
+        name  TYPE string,
+        order TYPE n LENGTH 2,
+      END OF ty_group_color,
+      ty_group_colors TYPE STANDARD TABLE OF ty_group_color WITH KEY id,
       BEGIN OF ty_color,
         id     TYPE string,
         name   TYPE string,
@@ -115,36 +127,86 @@ CLASS lcl_gui DEFINITION.
         border TYPE string,
       END OF ty_color,
       ty_colors TYPE STANDARD TABLE OF ty_color WITH KEY id,
+      BEGIN OF ty_map_color,
+        rl_style TYPE string,
+        name     TYPE string,
+        mode     TYPE string,
+      END OF ty_map_color,
+      ty_map_colors TYPE STANDARD TABLE OF ty_map_color WITH KEY rl_style,
       BEGIN OF ty_label,
         id    TYPE string,
         text  TYPE string,
         color TYPE ty_color,
       END OF ty_label,
-      ty_labels TYPE SORTED TABLE OF ty_label WITH UNIQUE KEY id.
+      ty_labels TYPE SORTED TABLE OF ty_label WITH UNIQUE KEY id,
+      BEGIN OF ty_gh_label,
+        r      TYPE i,
+        g      TYPE i,
+        b      TYPE i,
+        h      TYPE ty_p,
+        s      TYPE ty_p,
+        l      TYPE ty_p,
+        fg     TYPE string,
+        bg     TYPE string,
+        border TYPE string,
+      END OF ty_gh_label.
 
     DATA:
-      mx_error    TYPE REF TO zcx_abapgit_exception,
-      mo_settings TYPE REF TO zcl_abapgit_settings,
-      ms_settings TYPE zif_abapgit_definitions=>ty_s_user_settings,
-      mo_colors   TYPE REF TO zcl_abapgit_string_map,
-      mt_colors   TYPE ty_colors,
-      mv_header   TYPE string,
-      mv_styles   TYPE string,
-      mt_labels   TYPE ty_labels,
-      mi_viewer   TYPE REF TO zif_abapgit_html_viewer,
-      mv_page     TYPE i.
+      mx_error        TYPE REF TO zcx_abapgit_exception,
+      mo_settings     TYPE REF TO zcl_abapgit_settings,
+      ms_settings     TYPE zif_abapgit_definitions=>ty_s_user_settings,
+      mo_colors       TYPE REF TO zcl_abapgit_string_map,
+      mt_groups       TYPE ty_groups,
+      mt_group_colors TYPE ty_group_colors,
+      mt_colors       TYPE ty_colors,
+      mt_map_colors   TYPE ty_map_colors,
+      mv_header       TYPE string,
+      mv_styles       TYPE string,
+      mt_labels       TYPE ty_labels,
+      mi_viewer       TYPE REF TO zif_abapgit_html_viewer,
+      mv_page         TYPE i.
 
     METHODS _get_styles.
-
     METHODS _get_header.
 
+    METHODS _get_groups.
+    METHODS _get_group_colors.
     METHODS _get_colors.
+    METHODS _get_map_colors.
 
     METHODS _load_settings.
-
     METHODS _save_settings
       IMPORTING
         iv_label_colors TYPE string.
+
+    METHODS _hsl.
+    METHODS _hsla.
+    METHODS _rgb.
+    METHODS _rgba.
+
+    METHODS _hue_to_rgb
+      IMPORTING
+        t1            TYPE ty_p
+        t2            TYPE ty_p
+        VALUE(hue)    TYPE ty_p
+      RETURNING
+        VALUE(result) TYPE ty_p.
+
+    METHODS _hsl_to_rgb
+      CHANGING
+        label TYPE ty_gh_label.
+
+    METHODS _rgb_to_hsl
+      CHANGING
+        label TYPE ty_gh_label.
+
+    METHODS _gh_dark_mode
+      CHANGING
+        label TYPE ty_gh_label.
+
+    METHODS _gh_light_mode
+      CHANGING
+        label TYPE ty_gh_label.
 
 ENDCLASS.
 
@@ -167,7 +229,10 @@ CLASS lcl_gui IMPLEMENTATION.
 
     _get_styles( ).
     _get_header( ).
+    _get_groups( ).
+    _get_group_colors( ).
     _get_colors( ).
+    _get_map_colors( ).
 
     _load_settings( ).
 
@@ -205,52 +270,66 @@ CLASS lcl_gui IMPLEMENTATION.
   METHOD render_page_1.
 
     DATA:
-      lv_url   TYPE string,
-      lv_html  TYPE string,
-      lv_tabix TYPE sy-tabix,
-      ls_color TYPE ty_color,
-      ls_label TYPE ty_label.
+      lv_url         TYPE string,
+      lv_html        TYPE string,
+      lv_tabix       TYPE sy-tabix,
+      ls_group       TYPE ty_group,
+      ls_group_color TYPE ty_group_color,
+      ls_color       TYPE ty_color,
+      ls_label       TYPE ty_label.
 
     mv_page = 1.
 
     lv_html = mv_header &&
       |<form method="post" id="form" action="sapevent:preview" class="form">\n| &&
-      |<p class="pad">Enter a label text into the labels you want to use in abapGit and select "Preview" at the bottom of the page.</p>\n| &&
-      |<table>\n|.
+      |<p class="pad">Enter a label text into the labels you want to use in abapGit and select "Preview" at the bottom of the page.</p>\n|.
 
-    LOOP AT mt_colors INTO ls_color.
-      lv_tabix = sy-tabix.
-
-      IF lv_tabix MOD c_cols = 1.
-        lv_html = lv_html && |<tr>\n|.
-      ENDIF.
-
-      READ TABLE mt_labels INTO ls_label WITH TABLE KEY id = ls_color-id.
-      IF sy-subrc <> 0.
-        CLEAR ls_label.
-      ENDIF.
+    LOOP AT mt_groups INTO ls_group.
 
       lv_html = lv_html &&
-        |<td style="padding:10px">\n| &&
-        |<div style="| &&
-        |width:180px;height:50px;| &&
-        |border-radius:6px;border:solid 1px;| &&
-        |padding:5px 5px 5px 5px;text-align:center;| &&
-        |color:#{ ls_color-fg };| &&
-        |background-color:#{ ls_color-bg };| &&
-        |border-color:{ ls_color-border };">| &&
-        |{ ls_color-name }<br>\n| &&
-        |<input type="text" value="{ ls_label-text }" width="15" name="{ ls_color-id }">\n| &&
-        |</div>\n| &&
-        |</td>\n|.
+        |<h2 class="pad">{ to_upper( ls_group-group(1) ) }{ ls_group-group+1 } Colors</h2>| &&
+        |<table>\n|.
 
-      IF lv_tabix MOD c_cols = 0.
-        lv_html = lv_html && |</tr>\n|.
-      ENDIF.
+      lv_tabix = 1.
+
+      LOOP AT mt_group_colors INTO ls_group_color WHERE id = ls_group-id.
+        LOOP AT mt_colors INTO ls_color WHERE name = ls_group_color-name.
+          IF lv_tabix MOD c_cols = 1.
+            lv_html = lv_html && |<tr>\n|.
+          ENDIF.
+
+          READ TABLE mt_labels INTO ls_label WITH TABLE KEY id = ls_color-id.
+          IF sy-subrc <> 0.
+            CLEAR ls_label.
+          ENDIF.
+
+          lv_html = lv_html &&
+            |<td style="padding:10px">\n| &&
+            |<div style="| &&
+            |font-size:12px;| &&
+            |width:140px;height:40px;| &&
+            |border-radius:6px;border:solid 1px;| &&
+            |padding:3px;text-align:center;| &&
+            |color:#{ ls_color-fg };| &&
+            |background-color:#{ ls_color-bg };| &&
+            |border-color:{ ls_color-border };" | &&
+            |title="#{ ls_color-fg }/{ ls_color-bg }/{ ls_color-border }">| &&
+            |{ ls_color-name }<br>\n| &&
+            |<input type="text" value="{ ls_label-text }" name="{ ls_color-id }" class="input">\n| &&
+            |</div>\n| &&
+            |</td>\n|.
+
+          IF lv_tabix MOD c_cols = 0.
+            lv_html = lv_html && |</tr>\n|.
+          ENDIF.
+          lv_tabix = lv_tabix + 1.
+        ENDLOOP.
+      ENDLOOP.
+
+      lv_html = lv_html && |</table>\n|.
     ENDLOOP.
 
     lv_html = lv_html &&
-      |</table>\n| &&
       |<div class="pad">| &&
       |<input type="submit" value="Preview Selected Labels">\n| &&
       |</div>| &&
@@ -425,10 +504,49 @@ CLASS lcl_gui IMPLEMENTATION.
 
   METHOD _load_settings.
 
+    DATA:
+      ls_entry     TYPE zcl_abapgit_string_map=>ty_entry,
+      ls_color     TYPE ty_color,
+      ls_map_color TYPE ty_map_color,
+      ls_label     TYPE ty_label.
+
+    CLEAR mt_labels.
+
     TRY.
         mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
         ms_settings = mo_settings->get_user_settings( ).
         mo_colors   = zcl_abapgit_repo_labels=>split_colors_into_map( ms_settings-label_colors ).
+
+        LOOP AT mo_colors->mt_entries INTO ls_entry.
+          CLEAR ls_label.
+          ls_label-text = ls_entry-k.
+          IF ls_entry-v(1) = '#'.
+            SPLIT ls_entry-v+1 AT '/' INTO ls_label-color-fg ls_label-color-bg ls_label-color-border.
+            READ TABLE mt_colors INTO ls_color WITH KEY
+              fg     = ls_label-color-fg
+              bg     = ls_label-color-bg
+              border = ls_label-color-border.
+            IF sy-subrc = 0.
+              ls_label-id = ls_color-id.
+              INSERT ls_label INTO TABLE mt_labels.
+            ELSE.
+              " unknown color
+            ENDIF.
+          ELSE.
+            READ TABLE mt_map_colors INTO ls_map_color WITH KEY rl_style = ls_entry-v.
+            IF sy-subrc = 0.
+              READ TABLE mt_colors INTO ls_color WITH KEY
+                name = ls_map_color-name
+                mode = ls_map_color-mode.
+              ASSERT sy-subrc = 0.
+              ls_label-id = ls_color-id.
+              ls_label-color = ls_color.
+              INSERT ls_label INTO TABLE mt_labels.
+            ELSE.
+              " unknown color
+            ENDIF.
+          ENDIF.
+        ENDLOOP.
       CATCH zcx_abapgit_exception INTO mx_error.
         MESSAGE mx_error TYPE 'E'.
     ENDTRY.
@@ -447,12 +565,207 @@ CLASS lcl_gui IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _get_groups.
+
+    DATA:
+      lv_groups TYPE string,
+      lt_groups TYPE string_table,
+      ls_group  TYPE ty_group.
+
+    CLEAR mt_groups.
+
+    lv_groups =
+      '01,pink;' &&
+      '02,purple;' &&
+      '03,red;' &&
+      '04,orange;' &&
+      '05,yellow;' &&
+      '06,green;' &&
+      '07,cyan;' &&
+      '08,blue;' &&
+      '09,brown;' &&
+      '10,white;' &&
+      '11,gray'.
+
+    SPLIT lv_groups AT ';' INTO TABLE lt_groups.
+    LOOP AT lt_groups INTO lv_groups.
+      CLEAR ls_group.
+      SPLIT lv_groups AT ',' INTO ls_group-id ls_group-group.
+      INSERT ls_group INTO TABLE mt_groups.
+    ENDLOOP.
+
+
+  ENDMETHOD.
+
+  METHOD _get_group_colors.
+
+    DATA:
+      lv_group_colors TYPE string,
+      lt_group_colors TYPE string_table,
+      ls_group_color  TYPE ty_group_color.
+
+    CLEAR mt_group_colors.
+
+    lv_group_colors =
+      '01,pink,01;' &&
+      '01,lightpink,02;' &&
+      '01,hotpink,03;' &&
+      '01,deeppink,04;' &&
+      '01,palevioletred,05;' &&
+      '01,mediumvioletred,06;' &&
+      '02,lavender,01;' &&
+      '02,thistle,02;' &&
+      '02,plum,03;' &&
+      '02,orchid,04;' &&
+      '02,violet,05;' &&
+      '02,fuchsia,06;' &&
+      '02,magenta,07;' &&
+      '02,mediumorchid,08;' &&
+      '02,darkorchid,09;' &&
+      '02,darkviolet,10;' &&
+      '02,blueviolet,11;' &&
+      '02,darkmagenta,12;' &&
+      '02,purple,13;' &&
+      '02,mediumpurple,14;' &&
+      '02,mediumslateblue,15;' &&
+      '02,slateblue,16;' &&
+      '02,darkslateblue,17;' &&
+      '02,rebeccapurple,18;' &&
+      '02,indigo,19;' &&
+      '03,lightsalmon,01;' &&
+      '03,salmon,02;' &&
+      '03,darksalmon,03;' &&
+      '03,lightcoral,04;' &&
+      '03,indianred,05;' &&
+      '03,crimson,06;' &&
+      '03,red,07;' &&
+      '03,firebrick,08;' &&
+      '03,darkred,09;' &&
+      '04,orange,01;' &&
+      '04,darkorange,02;' &&
+      '04,coral,03;' &&
+      '04,tomato,04;' &&
+      '04,orangered,05;' &&
+      '05,gold,01;' &&
+      '05,yellow,02;' &&
+      '05,lightyellow,03;' &&
+      '05,lemonchiffon,04;' &&
+      '05,lightgoldenrodyellow,05;' &&
+      '05,papayawhip,06;' &&
+      '05,moccasin,07;' &&
+      '05,peachpuff,08;' &&
+      '05,palegoldenrod,09;' &&
+      '05,khaki,10;' &&
+      '05,darkkhaki,11;' &&
+      '06,greenyellow,01;' &&
+      '06,chartreuse,02;' &&
+      '06,lawngreen,03;' &&
+      '06,lime,04;' &&
+      '06,limegreen,05;' &&
+      '06,palegreen,06;' &&
+      '06,lightgreen,07;' &&
+      '06,mediumspringgreen,08;' &&
+      '06,springgreen,09;' &&
+      '06,mediumseagreen,10;' &&
+      '06,seagreen,11;' &&
+      '06,forestgreen,12;' &&
+      '06,green,13;' &&
+      '06,darkgreen,14;' &&
+      '06,yellowgreen,15;' &&
+      '06,olivedrab,16;' &&
+      '06,darkolivegreen,17;' &&
+      '06,mediumaquamarine,18;' &&
+      '06,darkseagreen,19;' &&
+      '06,lightseagreen,20;' &&
+      '06,darkcyan,21;' &&
+      '06,teal,22;' &&
+      '07,aqua,01;' &&
+      '07,cyan,02;' &&
+      '07,lightcyan,03;' &&
+      '07,paleturquoise,04;' &&
+      '07,aquamarine,05;' &&
+      '07,turquoise,06;' &&
+      '07,mediumturquoise,07;' &&
+      '07,darkturquoise,08;' &&
+      '08,cadetblue,01;' &&
+      '08,steelblue,02;' &&
+      '08,lightsteelblue,03;' &&
+      '08,lightblue,04;' &&
+      '08,powderblue,05;' &&
+      '08,lightskyblue,06;' &&
+      '08,skyblue,07;' &&
+      '08,cornflowerblue,08;' &&
+      '08,deepskyblue,09;' &&
+      '08,dodgerblue,10;' &&
+      '08,royalblue,11;' &&
+      '08,blue,12;' &&
+      '08,mediumblue,13;' &&
+      '08,darkblue,14;' &&
+      '08,navy,15;' &&
+      '08,midnightblue,16;' &&
+      '09,cornsilk,01;' &&
+      '09,blanchedalmond,02;' &&
+      '09,bisque,03;' &&
+      '09,navajowhite,04;' &&
+      '09,wheat,05;' &&
+      '09,burlywood,06;' &&
+      '09,tan,07;' &&
+      '09,rosybrown,08;' &&
+      '09,sandybrown,09;' &&
+      '09,goldenrod,10;' &&
+      '09,darkgoldenrod,11;' &&
+      '09,peru,12;' &&
+      '09,chocolate,13;' &&
+      '09,olive,14;' &&
+      '09,saddlebrown,15;' &&
+      '09,sienna,16;' &&
+      '09,brown,17;' &&
+      '09,maroon,18;' &&
+      '10,white,01;' &&
+      '10,snow,02;' &&
+      '10,honeydew,03;' &&
+      '10,mintcream,04;' &&
+      '10,azure,05;' &&
+      '10,aliceblue,06;' &&
+      '10,ghostwhite,07;' &&
+      '10,whitesmoke,08;' &&
+      '10,seashell,09;' &&
+      '10,beige,10;' &&
+      '10,oldlace,11;' &&
+      '10,floralwhite,12;' &&
+      '10,ivory,13;' &&
+      '10,antiquewhite,14;' &&
+      '10,linen,15;' &&
+      '10,lavenderblush,16;' &&
+      '10,mistyrose,17;' &&
+      '11,gainsboro,01;' &&
+      '11,lightgray,02;' &&
+      '11,silver,03;' &&
+      '11,darkgray,04;' &&
+      '11,dimgray,05;' &&
+      '11,gray,06;' &&
+      '11,lightslategray,07;' &&
+      '11,slategray,08;' &&
+      '11,darkslategray,09;' &&
+      '11,black,10'.
+
+    SPLIT lv_group_colors AT ';' INTO TABLE lt_group_colors.
+    LOOP AT lt_group_colors INTO lv_group_colors.
+      CLEAR ls_group_color.
+      SPLIT lv_group_colors AT ',' INTO ls_group_color-id ls_group_color-name ls_group_color-order.
+      INSERT ls_group_color INTO TABLE mt_group_colors.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD _get_colors.
 
     DATA:
       lv_colors TYPE string,
       lt_colors TYPE string_table,
       ls_color  TYPE ty_color.
+
+    CLEAR mt_colors.
 
     lv_colors =
       'aliceblue,f0f8ff,1f2d3d;' &&
@@ -481,7 +794,6 @@ CLASS lcl_gui IMPLEMENTATION.
       'darkgoldenrod,b8860b,fff;' &&
       'darkgray,a9a9a9,1f2d3d;' &&
       'darkgreen,006400,fff;' &&
-      'darkgrey,a9a9a9,1f2d3d;' &&
       'darkkhaki,bdb76b,1f2d3d;' &&
       'darkmagenta,8b008b,fff;' &&
       'darkolivegreen,556b2f,fff;' &&
@@ -492,13 +804,11 @@ CLASS lcl_gui IMPLEMENTATION.
       'darkseagreen,8fbc8f,1f2d3d;' &&
       'darkslateblue,483d8b,fff;' &&
       'darkslategray,2f4f4f,fff;' &&
-      'darkslategrey,2f4f4f,fff;' &&
       'darkturquoise,00ced1,fff;' &&
       'darkviolet,9400d3,fff;' &&
       'deeppink,ff1493,fff;' &&
       'deepskyblue,00bfff,1f2d3d;' &&
       'dimgray,696969,fff;' &&
-      'dimgrey,696969,fff;' &&
       'dodgerblue,1e90ff,fff;' &&
       'firebrick,b22222,fff;' &&
       'floralwhite,fffaf0,1f2d3d;' &&
@@ -511,7 +821,6 @@ CLASS lcl_gui IMPLEMENTATION.
       'gray,808080,fff;' &&
       'green,008000,fff;' &&
       'greenyellow,adff2f,1f2d3d;' &&
-      'grey,808080,fff;' &&
       'honeydew,f0fff0,1f2d3d;' &&
       'hotpink,ff69b4,1f2d3d;' &&
       'indianred,cd5c5c,fff;' &&
@@ -528,13 +837,11 @@ CLASS lcl_gui IMPLEMENTATION.
       'lightgoldenrodyellow,fafad2,1f2d3d;' &&
       'lightgray,d3d3d3,1f2d3d;' &&
       'lightgreen,90ee90,1f2d3d;' &&
-      'lightgrey,d3d3d3,1f2d3d;' &&
       'lightpink,ffb6c1,1f2d3d;' &&
       'lightsalmon,ffa07a,1f2d3d;' &&
       'lightseagreen,20b2aa,fff;' &&
       'lightskyblue,87cefa,1f2d3d;' &&
       'lightslategray,778899,fff;' &&
-      'lightslategrey,778899,fff;' &&
       'lightsteelblue,b0c4de,1f2d3d;' &&
       'lightyellow,ffffe0,1f2d3d;' &&
       'lime,00ff00,fff;' &&
@@ -588,7 +895,6 @@ CLASS lcl_gui IMPLEMENTATION.
       'skyblue,87ceeb,1f2d3d;' &&
       'slateblue,6a5acd,fff;' &&
       'slategray,708090,fff;' &&
-      'slategrey,708090,fff;' &&
       'snow,fffafa,1f2d3d;' &&
       'springgreen,00ff7f,1f2d3d;' &&
       'steelblue,4682b4,fff;' &&
@@ -609,6 +915,11 @@ CLASS lcl_gui IMPLEMENTATION.
       DO 3 TIMES.
         CLEAR ls_color.
         SPLIT lv_colors AT ',' INTO ls_color-name ls_color-bg ls_color-fg.
+
+        READ TABLE mt_group_colors TRANSPORTING NO FIELDS
+          WITH KEY name = ls_color-name.
+        ASSERT sy-subrc = 0.
+
         CASE sy-index.
           WHEN 1.
             ls_color-id     = |col-{ sy-tabix }|.
@@ -633,6 +944,49 @@ CLASS lcl_gui IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _get_map_colors.
+
+    DATA:
+      lv_map_colors TYPE string,
+      lt_map_colors TYPE string_table,
+      ls_map_color  TYPE ty_map_color.
+
+    CLEAR mt_map_colors.
+
+    lv_map_colors =
+      'white,dimgray, on white;' &&
+      'white-b,dodgerblue, on white;' &&
+      'white-r,crimson, on white;' &&
+      'grey,gray,;' &&
+      'dark-w,white, on black;' &&
+      'dark-y,gold, on black;' &&
+      'dark-r,crimson, on black;' &&
+      'dark-b,dodgerblue, on black;' &&
+      'lightblue,lightblue,;' &&
+      'darkblue,darkblue,;' &&
+      'lightgreen,lightgreen,;' &&
+      'darkgreen,darkgreen,;' &&
+      'lightred,lightsalmon,;' &&
+      'darkred,darkred,;' &&
+      'yellow,yellow,;' &&
+      'darkyellow,gold,;' &&
+      'orange,orange,;' &&
+      'brown,brown,;' &&
+      'pink,pink,;' &&
+      'teal,lightseagreen,;' &&
+      'darkviolet,mediumslateblue,'.
+
+    SPLIT lv_map_colors AT ';' INTO TABLE lt_map_colors.
+    LOOP AT lt_map_colors INTO lv_map_colors.
+      CLEAR ls_map_color.
+      SPLIT lv_map_colors AT ',' INTO ls_map_color-rl_style ls_map_color-name ls_map_color-mode.
+      READ TABLE mt_colors TRANSPORTING NO FIELDS WITH KEY name = ls_map_color-name.
+      ASSERT sy-subrc = 0.
+      INSERT ls_map_color INTO TABLE mt_map_colors.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD _get_styles.
 
     mv_styles =
@@ -645,12 +999,24 @@ CLASS lcl_gui IMPLEMENTATION.
       '  font-size:28px;' &&
       '  color:darkgray;' &&
       '}' &&
+      'h2 {' &&
+      '  font-size:14px;' &&
+      '  color:darkgray;' &&
+      '}' &&
       '.pad {' &&
-      '  padding:20px 10px 0px;' &&
+      '  padding:10px 10px 0px;' &&
       '}' &&
       '.form {' &&
       '  background-color:#f2f2f2;' &&
       '  padding-bottom:20px;' &&
+      '}' &&
+      '.input {' &&
+      '  border:1px solid;' &&
+      '  border-color:lightgray;' &&
+      '  color:red;' &&
+      '  width:120px;' &&
+      '  text-align: center;' &&
+      '  font-weight:bold;' &&
       '}' &&
       '.repo-label-catalog {' &&
       '  padding: 1em 1em;' &&
@@ -699,6 +1065,160 @@ CLASS lcl_gui IMPLEMENTATION.
       |<img src="https://abapgit.org/img/logo.svg" width="110px" style="vertical-align:middle;">| &&
       |<span style="vertical-align:middle;padding:10px;">Label Designer</span>| &&
       |</h1>\n|.
+
+  ENDMETHOD.
+
+  METHOD _hsl.
+
+  ENDMETHOD.
+
+  METHOD _hsla.
+
+  ENDMETHOD.
+
+  METHOD _rgb.
+
+  ENDMETHOD.
+
+  METHOD _rgba.
+
+  ENDMETHOD.
+
+  METHOD _hue_to_rgb.
+    IF hue < 0.
+      hue = hue + 6.
+    ENDIF.
+    IF hue >= 6.
+      hue = hue - 6.
+    ENDIF.
+    IF hue < 1.
+      result = ( t2 - t1 ) * hue + t1.
+    ELSEIF hue < 3.
+      result = t2.
+    ELSEIF hue < 4.
+      result = ( t2 - t1 ) * ( 4 - hue ) + t1.
+    ELSE.
+      result = t1.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD _hsl_to_rgb.
+
+    DATA:
+      h2 TYPE ty_p,
+      t1 TYPE ty_p,
+      t2 TYPE ty_p.
+
+    h2 = label-h / 60.
+    IF label-l <= '0.5'.
+      t2 = label-l * ( label-s + 1 ).
+    ELSE.
+      t2 = label-l + label-s - ( label-l * label-s ).
+    ENDIF.
+    t1 = label-l * 2 - t2.
+    label-r = _hue_to_rgb( t1 = t1 t2 = t2 hue = h2 + 2 ) * 255.
+    label-g = _hue_to_rgb( t1 = t1 t2 = t2 hue = h2 ) * 255.
+    label-b = _hue_to_rgb( t1 = t1 t2 = t2 hue = h2 - 2 ) * 255.
+
+  ENDMETHOD.
+
+  METHOD _rgb_to_hsl.
+
+    DATA:
+      min      TYPE i,
+      max      TYPE i,
+      maxcolor TYPE i,
+      r0       TYPE p LENGTH 10 DECIMALS 5,
+      r1       TYPE p LENGTH 10 DECIMALS 5,
+      r2       TYPE p LENGTH 10 DECIMALS 5.
+
+    r0 = label-r / 255.
+    r1 = label-g / 255.
+    r2 = label-b / 255.
+    min = nmin( val1 = r0 val2 = r1 val3 = r2 ).
+    max = nmax( val1 = r0 val2 = r1 val3 = r2 ).
+    maxcolor = 0.
+    IF r1 >= r0.
+      maxcolor = 1.
+    ENDIF.
+    IF r2 >= r1.
+      maxcolor = 2.
+    ENDIF.
+    label-h = 0.
+    IF maxcolor = 0.
+      label-h = ( r1 - r2 ) / ( max - min ).
+    ENDIF.
+    IF maxcolor = 1.
+      label-h = 2 + ( r2 - r0 ) / ( max - min ).
+    ENDIF.
+    IF maxcolor = 1.
+      label-h = 4 + ( r0 - r1 ) / ( max - min ).
+    ENDIF.
+    label-h = label-h * 60.
+    IF label-h < 0.
+      label-h = label-h + 360.
+    ENDIF.
+    label-l = ( min + max ) / 2.
+    IF min = max.
+      label-s = 0.
+    ELSEIF label-l < '0.5'.
+      label-s = ( max - min ) / ( max + min ).
+    ELSE.
+      label-s = ( max - min ) / ( 2 - max - min ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD _gh_dark_mode.
+
+    DATA:
+      perceived_lightness TYPE ty_p,
+      lightness_switch    TYPE ty_p,
+      lightness_threshold TYPE ty_p,
+      background_alpha    TYPE ty_p,
+      border_threshold    TYPE ty_p,
+      border_alpha        TYPE ty_p,
+      lighten_by          TYPE ty_p.
+
+    _rgb_to_hsl( CHANGING label = label ).
+
+    perceived_lightness = ( ( label-r * '0.2126' ) + ( label-g * '0.7152' ) + ( label-b * '0.0722' ) ) / 255.
+    lightness_switch = nmax( val1 = 0 val2 = nmin( val1 = ( ( 1 / ( lightness_threshold - perceived_lightness ) ) ) val2 = 1 ) ).
+
+    lightness_threshold = '0.6'.
+    background_alpha = '0.18'.
+    border_threshold = '0.96'.
+    border_alpha = '0.3'.
+
+    lighten_by = ( lightness_threshold - perceived_lightness ) * 100 * lightness_switch.
+
+*    color = _hsl( h = label-h s = label-s * '0.01' l = ( label-l + lighten_by ) * '0.01' ).
+*    background = _rgba( r = label-r g = label-g b = label-b a = background_alpha ).
+*    border = _hsla( h = label-h s = label-s * '0.01' l = ( label-l + lighten_by ) * '0.01' a = border_alpha ).
+
+  ENDMETHOD.
+
+  METHOD _gh_light_mode.
+
+    DATA:
+      perceived_lightness TYPE ty_p,
+      lightness_switch    TYPE ty_p,
+      lightness_threshold TYPE ty_p,
+      border_threshold    TYPE ty_p,
+      border_alpha        TYPE ty_p.
+
+    _rgb_to_hsl( CHANGING label = label ).
+
+    perceived_lightness = ( ( label-r * '0.2126' ) + ( label-g * '0.7152' ) + ( label-b * '0.0722' ) ) / 255.
+    lightness_switch = nmax( val1 = 0 val2 = nmin( val1 = ( ( 1 / ( lightness_threshold - perceived_lightness ) ) ) val2 = 1 ) ).
+
+    lightness_threshold = '0.453'.
+    border_threshold = '0.96'.
+    border_alpha = nmax( val1 = 0 val2 = nmin( val1 = ( ( perceived_lightness - border_threshold ) * 100 ) val2 = 1 ) ).
+
+*    color = _hsl( h = 0 s = 0 l = lightness_switch ).
+*    background = _rgb( r = label-r g = label-g b = label-b ).
+*    border = _hsla( h = label-h s = label-s * '0.01' l = ( label-l - 25 ) * '0.01' a = border_alpha ).
 
   ENDMETHOD.
 
