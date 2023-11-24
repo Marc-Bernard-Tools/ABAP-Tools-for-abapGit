@@ -56,8 +56,6 @@ START-OF-SELECTION.
 
   CREATE OBJECT go_gui.
 
-  go_gui->startup( ).
-
-  go_gui->render_page_1( ).
+  go_gui->startup( '' )->render( ).
 
   CALL SELECTION-SCREEN 1001.

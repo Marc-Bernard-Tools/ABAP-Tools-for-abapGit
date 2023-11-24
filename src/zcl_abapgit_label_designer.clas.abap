@@ -15,6 +15,16 @@ CLASS zcl_abapgit_label_designer DEFINITION
         !query_table.
 
     METHODS startup
+      IMPORTING
+        iv_dark_mode  TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE REF TO zcl_abapgit_label_designer
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS render
+      IMPORTING
+        ii_event TYPE REF TO zif_abapgit_gui_event OPTIONAL
       RAISING
         zcx_abapgit_exception.
 
@@ -32,16 +42,6 @@ CLASS zcl_abapgit_label_designer DEFINITION
       RAISING
         zcx_abapgit_exception.
 
-    METHODS render_page_1
-      RAISING
-        zcx_abapgit_exception.
-
-    METHODS render_page_2
-      IMPORTING
-        ii_event TYPE REF TO zif_abapgit_gui_event
-      RAISING
-        zcx_abapgit_exception.
-
     METHODS handle_action
       IMPORTING
         !iv_action   TYPE c
@@ -56,7 +56,7 @@ CLASS zcl_abapgit_label_designer DEFINITION
 
     METHODS back
       RETURNING
-        VALUE(rv_exit) TYPE abap_bool
+        VALUE(result) TYPE abap_bool
       RAISING
         zcx_abapgit_exception.
 
@@ -132,14 +132,34 @@ CLASS zcl_abapgit_label_designer DEFINITION
       mt_group_colors TYPE ty_group_colors,
       mt_colors       TYPE ty_colors,
       mt_map_colors   TYPE ty_map_colors,
-      mv_header       TYPE string,
-      mv_styles       TYPE string,
+      mv_dark_mode    TYPE abap_bool,
       mt_labels       TYPE ty_labels,
       mi_viewer       TYPE REF TO zif_abapgit_html_viewer,
       mv_page         TYPE i.
 
-    METHODS _get_styles.
-    METHODS _get_header.
+    METHODS render_page_1
+      IMPORTING
+        ii_event TYPE REF TO zif_abapgit_gui_event
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS render_page_2
+      IMPORTING
+        ii_event TYPE REF TO zif_abapgit_gui_event
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS _get_styles
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS _get_header
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS _get_mode_class
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS _get_groups.
     METHODS _get_group_colors.
@@ -165,6 +185,7 @@ CLASS zcl_abapgit_label_designer DEFINITION
         s             TYPE ty_p
         l             TYPE ty_p
         a             TYPE ty_p
+        dark          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string.
 
@@ -182,6 +203,7 @@ CLASS zcl_abapgit_label_designer DEFINITION
         g             TYPE i
         b             TYPE i
         a             TYPE ty_p
+        dark          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string.
 
@@ -210,12 +232,14 @@ CLASS zcl_abapgit_label_designer DEFINITION
     METHODS _gh_dark_mode
       IMPORTING
         col           TYPE string
+        dark          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE ty_gh_label.
 
     METHODS _gh_light_mode
       IMPORTING
         col           TYPE string
+        dark          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE ty_gh_label.
 
@@ -227,13 +251,10 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD back.
-
-    IF mv_page = 2.
-      render_page_1( ).
-    ELSE.
-      rv_exit = abap_true.
+    mv_page = mv_page - 1.
+    IF mv_page = 0.
+      result = abap_true.
     ENDIF.
-
   ENDMETHOD.
 
 
@@ -284,15 +305,23 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
         it_postdata = it_postdata.
 
     TRY.
-        IF iv_action = 'preview'.
-          render_page_2( li_event ).
-        ELSEIF iv_action = 'save'.
-          save( li_event ).
-        ELSEIF iv_action = 'back'.
-          back( ).
-        ELSE.
-          BREAK-POINT.
-        ENDIF.
+        CASE iv_action.
+          WHEN 'main'.
+            mv_page = 1.
+            render( li_event ).
+          WHEN 'preview'.
+            mv_page = 2.
+            render( li_event ).
+          WHEN 'toggle'.
+            mv_dark_mode = boolc( mv_dark_mode = abap_false ).
+            render( li_event ).
+          WHEN 'save'.
+            save( li_event ).
+          WHEN 'back'.
+            back( ).
+          WHEN OTHERS.
+            BREAK-POINT.
+        ENDCASE.
       CATCH cx_root.
         BREAK-POINT.
     ENDTRY.
@@ -310,22 +339,33 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD render.
+
+    CASE mv_page.
+      WHEN 1.
+        render_page_1( ii_event ).
+      WHEN 2.
+        render_page_2( ii_event ).
+      WHEN OTHERS.
+        BREAK-POINT.
+    ENDCASE.
+
+  ENDMETHOD.
+
+
   METHOD render_page_1.
 
     DATA:
       lv_url         TYPE string,
       lv_html        TYPE string,
-      lv_dark        TYPE string,
       lv_tabix       TYPE sy-tabix,
       ls_group       TYPE ty_group,
       ls_group_color TYPE ty_group_color,
       ls_color       TYPE ty_color,
       ls_label       TYPE ty_label.
 
-    mv_page = 1.
-
-    lv_html = mv_header &&
-      |<form method="post" id="form" action="sapevent:preview" class="form">\n| &&
+    lv_html = _get_header( ) &&
+      |<form method="post" id="form" action="sapevent:preview" class="form { _get_mode_class( ) }">\n| &&
       |<p class="pad">Enter a label text into the labels you want to use in abapGit and select "Preview" at the bottom of the page.</p>\n|.
 
     LOOP AT mt_groups INTO ls_group.
@@ -347,14 +387,8 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
             CLEAR ls_label.
           ENDIF.
 
-          IF ls_color-mode = c_color_mode-dark.
-            lv_dark = 'background-color:#161b22;'.
-          ELSE.
-            lv_dark = ''.
-          ENDIF.
-
           lv_html = lv_html &&
-            |<td style="padding:10px;{ lv_dark }">\n| &&
+            |<td style="padding:10px;">\n| &&
             |<div style="| &&
             |font-size:12px;| &&
             |width:140px;height:40px;| &&
@@ -382,6 +416,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     lv_html = lv_html &&
       |<div class="pad">| &&
       |<input type="submit" value="Preview Selected Labels">\n| &&
+      |<input type="submit" value="Toggle Dark/Light" formaction="sapevent:toggle">\n| &&
       |</div>| &&
       |</form>\n| &&
       |</body></html>\n|.
@@ -404,10 +439,8 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       lt_labels TYPE string_table,
       lo_colors TYPE REF TO zcl_abapgit_string_map.
 
-    mv_page = 2.
-
-    lv_html = mv_header &&
-      |<form method="post" id="form" action="sapevent:save" class="form">\n| &&
+    lv_html = _get_header( ) &&
+      |<form method="post" id="form" action="sapevent:save" class="form { _get_mode_class( ) }">\n| &&
       |<p class="pad">Here's a preview of what your labels will look like. Select "Save" at the bottom of the page.</p>\n|.
 
     CLEAR mt_labels.
@@ -521,6 +554,9 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     mi_viewer->set_registered_events( lt_events ).
     SET HANDLER on_event FOR mi_viewer.
 
+    mv_page      = 1.
+    mv_dark_mode = iv_dark_mode.
+
     _get_styles( ).
     _get_header( ).
     _get_groups( ).
@@ -529,6 +565,8 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     _get_map_colors( ).
 
     _load_settings( ).
+
+    result = me.
 
   ENDMETHOD.
 
@@ -700,7 +738,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
           WHEN 1.
             ls_color-id     = |light-{ sy-tabix }|.
             ls_color-mode   = c_color_mode-light.
-            ls_gh_label     = _gh_light_mode( ls_color-bg ).
+            ls_gh_label     = _gh_light_mode( col = ls_color-bg dark = mv_dark_mode ).
             ls_color-fg     = ls_gh_label-fg.
             ls_color-bg     = ls_gh_label-bg.
             ls_color-border = ls_gh_label-border.
@@ -709,17 +747,17 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
             ls_color-mode   = c_color_mode-white.
             ls_color-fg     = ls_color-bg.
             ls_color-bg     = 'fff'.
-            ls_color-border = ls_color-bg.
+            ls_color-border = ls_color-fg.
           WHEN 3.
             ls_color-id     = |blk-{ sy-tabix }|.
             ls_color-mode   = c_color_mode-black.
             ls_color-fg     = ls_color-bg.
             ls_color-bg     = '000'.
-            ls_color-border = '000'.
+            ls_color-border = ls_color-fg.
           WHEN 4.
             ls_color-id     = |dark-{ sy-tabix }|.
             ls_color-mode   = c_color_mode-dark.
-            ls_gh_label     = _gh_dark_mode( ls_color-bg ).
+            ls_gh_label     = _gh_dark_mode( col = ls_color-bg dark = mv_dark_mode ).
             ls_color-fg     = ls_gh_label-fg.
             ls_color-bg     = ls_gh_label-bg.
             ls_color-border = ls_gh_label-border.
@@ -745,15 +783,15 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     CLEAR mt_groups.
 
     lv_groups =
-      '01,pink;' &&
-      '02,purple;' &&
-      '03,red;' &&
-      '04,orange;' &&
-      '05,yellow;' &&
-      '06,green;' &&
-      '07,cyan;' &&
-      '08,blue;' &&
-      '09,brown;' &&
+      '01,red;' &&
+      '02,orange;' &&
+      '03,brown;' &&
+      '04,yellow;' &&
+      '05,green;' &&
+      '06,cyan;' &&
+      '07,blue;' &&
+      '08,pink;' &&
+      '09,purple;' &&
       '10,white;' &&
       '11,gray'.
 
@@ -778,120 +816,121 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     CLEAR mt_group_colors.
 
     lv_group_colors =
-      '01,pink,01;' &&
-      '01,lightpink,02;' &&
-      '01,hotpink,03;' &&
-      '01,deeppink,04;' &&
-      '01,palevioletred,05;' &&
-      '01,mediumvioletred,06;' &&
-      '02,lavender,01;' &&
-      '02,thistle,02;' &&
-      '02,plum,03;' &&
-      '02,orchid,04;' &&
-      '02,violet,05;' &&
-      '02,fuchsia,06;' &&
-      '02,magenta,07;' &&
-      '02,mediumorchid,08;' &&
-      '02,darkorchid,09;' &&
-      '02,darkviolet,10;' &&
-      '02,blueviolet,11;' &&
-      '02,darkmagenta,12;' &&
-      '02,purple,13;' &&
-      '02,mediumpurple,14;' &&
-      '02,mediumslateblue,15;' &&
-      '02,slateblue,16;' &&
-      '02,darkslateblue,17;' &&
-      '02,rebeccapurple,18;' &&
-      '02,indigo,19;' &&
-      '03,lightsalmon,01;' &&
-      '03,salmon,02;' &&
-      '03,darksalmon,03;' &&
-      '03,lightcoral,04;' &&
-      '03,indianred,05;' &&
-      '03,crimson,06;' &&
-      '03,red,07;' &&
-      '03,firebrick,08;' &&
-      '03,darkred,09;' &&
-      '04,orange,01;' &&
-      '04,darkorange,02;' &&
-      '04,coral,03;' &&
-      '04,tomato,04;' &&
-      '04,orangered,05;' &&
-      '05,gold,01;' &&
-      '05,yellow,02;' &&
-      '05,lightyellow,03;' &&
-      '05,lemonchiffon,04;' &&
-      '05,lightgoldenrodyellow,05;' &&
-      '05,papayawhip,06;' &&
-      '05,moccasin,07;' &&
-      '05,peachpuff,08;' &&
-      '05,palegoldenrod,09;' &&
-      '05,khaki,10;' &&
-      '05,darkkhaki,11;' &&
-      '06,greenyellow,01;' &&
-      '06,chartreuse,02;' &&
-      '06,lawngreen,03;' &&
-      '06,lime,04;' &&
-      '06,limegreen,05;' &&
-      '06,palegreen,06;' &&
-      '06,lightgreen,07;' &&
-      '06,mediumspringgreen,08;' &&
-      '06,springgreen,09;' &&
-      '06,mediumseagreen,10;' &&
-      '06,seagreen,11;' &&
-      '06,forestgreen,12;' &&
-      '06,green,13;' &&
-      '06,darkgreen,14;' &&
-      '06,yellowgreen,15;' &&
-      '06,olivedrab,16;' &&
-      '06,darkolivegreen,17;' &&
-      '06,mediumaquamarine,18;' &&
-      '06,darkseagreen,19;' &&
-      '06,lightseagreen,20;' &&
-      '06,darkcyan,21;' &&
-      '06,teal,22;' &&
-      '07,aqua,01;' &&
-      '07,cyan,02;' &&
-      '07,lightcyan,03;' &&
-      '07,paleturquoise,04;' &&
-      '07,aquamarine,05;' &&
-      '07,turquoise,06;' &&
-      '07,mediumturquoise,07;' &&
-      '07,darkturquoise,08;' &&
-      '08,cadetblue,01;' &&
-      '08,steelblue,02;' &&
-      '08,lightsteelblue,03;' &&
-      '08,lightblue,04;' &&
-      '08,powderblue,05;' &&
-      '08,lightskyblue,06;' &&
-      '08,skyblue,07;' &&
-      '08,cornflowerblue,08;' &&
-      '08,deepskyblue,09;' &&
-      '08,dodgerblue,10;' &&
-      '08,royalblue,11;' &&
-      '08,blue,12;' &&
-      '08,mediumblue,13;' &&
-      '08,darkblue,14;' &&
-      '08,navy,15;' &&
-      '08,midnightblue,16;' &&
-      '09,cornsilk,01;' &&
-      '09,blanchedalmond,02;' &&
-      '09,bisque,03;' &&
-      '09,navajowhite,04;' &&
-      '09,wheat,05;' &&
-      '09,burlywood,06;' &&
-      '09,tan,07;' &&
-      '09,rosybrown,08;' &&
-      '09,sandybrown,09;' &&
-      '09,goldenrod,10;' &&
-      '09,darkgoldenrod,11;' &&
-      '09,peru,12;' &&
-      '09,chocolate,13;' &&
-      '09,olive,14;' &&
-      '09,saddlebrown,15;' &&
-      '09,sienna,16;' &&
-      '09,brown,17;' &&
-      '09,maroon,18;' &&
+
+      '01,lightsalmon,01;' &&
+      '01,salmon,02;' &&
+      '01,darksalmon,03;' &&
+      '01,lightcoral,04;' &&
+      '01,indianred,05;' &&
+      '01,crimson,06;' &&
+      '01,red,07;' &&
+      '01,firebrick,08;' &&
+      '01,darkred,09;' &&
+      '02,orange,01;' &&
+      '02,darkorange,02;' &&
+      '02,coral,03;' &&
+      '02,tomato,04;' &&
+      '02,orangered,05;' &&
+      '03,cornsilk,01;' &&
+      '03,blanchedalmond,02;' &&
+      '03,bisque,03;' &&
+      '03,navajowhite,04;' &&
+      '03,wheat,05;' &&
+      '03,burlywood,06;' &&
+      '03,tan,07;' &&
+      '03,rosybrown,08;' &&
+      '03,sandybrown,09;' &&
+      '03,goldenrod,10;' &&
+      '03,darkgoldenrod,11;' &&
+      '03,peru,12;' &&
+      '03,chocolate,13;' &&
+      '03,olive,14;' &&
+      '03,saddlebrown,15;' &&
+      '03,sienna,16;' &&
+      '03,brown,17;' &&
+      '03,maroon,18;' &&
+      '04,gold,01;' &&
+      '04,yellow,02;' &&
+      '04,lightyellow,03;' &&
+      '04,lemonchiffon,04;' &&
+      '04,lightgoldenrodyellow,05;' &&
+      '04,papayawhip,06;' &&
+      '04,moccasin,07;' &&
+      '04,peachpuff,08;' &&
+      '04,palegoldenrod,09;' &&
+      '04,khaki,10;' &&
+      '04,darkkhaki,11;' &&
+      '05,greenyellow,01;' &&
+      '05,chartreuse,02;' &&
+      '05,lawngreen,03;' &&
+      '05,lime,04;' &&
+      '05,limegreen,05;' &&
+      '05,palegreen,06;' &&
+      '05,lightgreen,07;' &&
+      '05,mediumspringgreen,08;' &&
+      '05,springgreen,09;' &&
+      '05,mediumseagreen,10;' &&
+      '05,seagreen,11;' &&
+      '05,forestgreen,12;' &&
+      '05,green,13;' &&
+      '05,darkgreen,14;' &&
+      '05,yellowgreen,15;' &&
+      '05,olivedrab,16;' &&
+      '05,darkolivegreen,17;' &&
+      '05,mediumaquamarine,18;' &&
+      '05,darkseagreen,19;' &&
+      '05,lightseagreen,20;' &&
+      '05,darkcyan,21;' &&
+      '05,teal,22;' &&
+      '06,aqua,01;' &&
+      '06,cyan,02;' &&
+      '06,lightcyan,03;' &&
+      '06,paleturquoise,04;' &&
+      '06,aquamarine,05;' &&
+      '06,turquoise,06;' &&
+      '06,mediumturquoise,07;' &&
+      '06,darkturquoise,08;' &&
+      '07,cadetblue,01;' &&
+      '07,steelblue,02;' &&
+      '07,lightsteelblue,03;' &&
+      '07,lightblue,04;' &&
+      '07,powderblue,05;' &&
+      '07,lightskyblue,06;' &&
+      '07,skyblue,07;' &&
+      '07,cornflowerblue,08;' &&
+      '07,deepskyblue,09;' &&
+      '07,dodgerblue,10;' &&
+      '07,royalblue,11;' &&
+      '07,blue,12;' &&
+      '07,mediumblue,13;' &&
+      '07,darkblue,14;' &&
+      '07,navy,15;' &&
+      '07,midnightblue,16;' &&
+      '08,pink,01;' &&
+      '08,lightpink,02;' &&
+      '08,hotpink,03;' &&
+      '08,deeppink,04;' &&
+      '08,palevioletred,05;' &&
+      '08,mediumvioletred,06;' &&
+      '09,lavender,01;' &&
+      '09,thistle,02;' &&
+      '09,plum,03;' &&
+      '09,orchid,04;' &&
+      '09,violet,05;' &&
+      '09,fuchsia,06;' &&
+      '09,magenta,07;' &&
+      '09,mediumorchid,08;' &&
+      '09,darkorchid,09;' &&
+      '09,darkviolet,10;' &&
+      '09,blueviolet,11;' &&
+      '09,darkmagenta,12;' &&
+      '09,purple,13;' &&
+      '09,mediumpurple,14;' &&
+      '09,mediumslateblue,15;' &&
+      '09,slateblue,16;' &&
+      '09,darkslateblue,17;' &&
+      '09,rebeccapurple,18;' &&
+      '09,indigo,19;' &&
       '10,white,01;' &&
       '10,snow,02;' &&
       '10,honeydew,03;' &&
@@ -932,9 +971,9 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
   METHOD _get_header.
 
-    mv_header =
+    result =
       |<html><head>\n| &&
-      |<style>{ mv_styles }</style>| &&
+      |<style>{ _get_styles( ) }</style>| &&
       |</head>\n| &&
       |<body class="main">\n| &&
       |<h1>| &&
@@ -989,27 +1028,43 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD _get_mode_class.
+    IF mv_dark_mode = abap_true.
+      result = 'dark'.
+    ELSE.
+      result = 'light'.
+    ENDIF.
+  ENDMETHOD.
+
+
   METHOD _get_styles.
 
-    mv_styles =
+    result =
       '.main {' &&
       '  font-family:Arial;' &&
       '  font-size:16px;' &&
       '  background-color:#e8e8e8;' &&
       '}' &&
+      '.light {' &&
+      '  color:#000000;' &&
+      '  background-color:#f2f2f2;' &&
+      '}' &&
+      '.dark {' &&
+      '  color:#ffffff;' &&
+      '  background-color:#333333;' &&
+      '}' &&
       'h1 {' &&
       '  font-size:28px;' &&
-      '  color:darkgray;' &&
+      '  color:gray;' &&
       '}' &&
       'h2 {' &&
       '  font-size:14px;' &&
-      '  color:darkgray;' &&
+      '  color:gray;' &&
       '}' &&
       '.pad {' &&
       '  padding:10px 10px 0px;' &&
       '}' &&
       '.form {' &&
-      '  background-color:#f2f2f2;' &&
       '  padding-bottom:20px;' &&
       '}' &&
       '.input {' &&
@@ -1040,7 +1095,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       'ul.repo-labels li {' &&
       '  display: inline-block;' &&
       '  padding: 3px 5px;' &&
-      '  border-radius: 3px;' &&
+      '  border-radius: 8px;' &&
       '  border-style: solid;' &&
       '  border-width: 1px;' &&
       '  margin-bottom: 2px;' &&
@@ -1072,17 +1127,17 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     label = _gh_label( col ).
     _rgb_to_hsl( CHANGING label = label ).
 
-    lightness_threshold = '0.6'.
-    background_alpha    = '0.18'.
+    lightness_threshold = '0.8'. " 0.6
+    background_alpha    = '0.8'." 0.18
     border_threshold    = '0.96'.
-    border_alpha        = '0.3'.
+    border_alpha        = '0.8'.
     perceived_lightness = ( ( label-r * '0.2126' ) + ( label-g * '0.7152' ) + ( label-b * '0.0722' ) ) / 255.
     lightness_switch    = nmax( val1 = 0 val2 = nmin( val1 = ( ( 1 / ( lightness_threshold - perceived_lightness ) ) ) val2 = 1 ) ).
-    lighten_by          = ( lightness_threshold - perceived_lightness ) * 100 * lightness_switch.
+    lighten_by          = ( lightness_threshold - perceived_lightness ) * lightness_switch.
 
-    label-fg     = _hsl( h = label-h s = label-s * '0.01' l = ( label-l + lighten_by ) * '0.01' ).
-    label-bg     = _rgba( r = label-r g = label-g b = label-b a = background_alpha ).
-    label-border = _hsla( h = label-h s = label-s * '0.01' l = ( label-l + lighten_by ) * '0.01' a = border_alpha ).
+    label-fg     = _hsl( h = label-h s = label-s l = label-l + lighten_by ).
+    label-bg     = _rgba( r = label-r g = label-g b = label-b a = background_alpha dark = dark ).
+    label-border = _hsla( h = label-h s = label-s l = label-l + lighten_by a = border_alpha dark = dark ).
 
     result = label.
 
@@ -1095,6 +1150,8 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       x TYPE x LENGTH 1,
       y TYPE x LENGTH 1,
       z TYPE x LENGTH 1.
+
+    ASSERT strlen( col ) = 6.
 
     x = to_upper( col(2) ).
     y = to_upper( col+2(2) ).
@@ -1115,7 +1172,8 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       lightness_switch    TYPE ty_p,
       lightness_threshold TYPE ty_p,
       border_threshold    TYPE ty_p,
-      border_alpha        TYPE ty_p.
+      border_alpha        TYPE ty_p,
+      darken_by           TYPE ty_p.
 
     label = _gh_label( col ).
     _rgb_to_hsl( CHANGING label = label ).
@@ -1124,11 +1182,12 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     border_threshold    = '0.96'.
     perceived_lightness = ( ( label-r * '0.2126' ) + ( label-g * '0.7152' ) + ( label-b * '0.0722' ) ) / 255.
     lightness_switch    = nmax( val1 = 0 val2 = nmin( val1 = ( ( 1 / ( lightness_threshold - perceived_lightness ) ) ) val2 = 1 ) ).
-    border_alpha        = nmax( val1 = 0 val2 = nmin( val1 = ( ( perceived_lightness - border_threshold ) * 100 ) val2 = 1 ) ).
+    border_alpha        = nmax( val1 = 0 val2 = nmin( val1 = ( ( perceived_lightness - border_threshold ) ) val2 = 1 ) ).
+    darken_by           = '0.25'.
 
     label-fg     = _hsl( h = 0 s = 0 l = lightness_switch ).
     label-bg     = _rgb( r = label-r g = label-g b = label-b ).
-    label-border = _hsla( h = label-h s = label-s * '0.01' l = ( label-l - 25 ) * '0.01' a = border_alpha ).
+    label-border = _hsla( h = label-h s = label-s l = label-l - darken_by a = border_alpha dark = dark ).
 
     result = label.
 
@@ -1141,32 +1200,36 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD _hsla.
+
     DATA label TYPE ty_gh_label.
+
     label-h = h.
     label-s = s.
     label-l = l.
     _hsl_to_rgb( CHANGING label = label ).
-    result = _rgba( r = label-r g = label-g b = label-g a = a ).
+
+    result = _rgba( r = label-r g = label-g b = label-b a = a dark = dark ).
+
   ENDMETHOD.
 
 
   METHOD _hsl_to_rgb.
 
     DATA:
-      h2 TYPE ty_p,
-      t1 TYPE ty_p,
-      t2 TYPE ty_p.
+      hue TYPE ty_p,
+      t1  TYPE ty_p,
+      t2  TYPE ty_p.
 
-    h2 = label-h / 60.
+    hue = label-h / 60.
     IF label-l <= '0.5'.
       t2 = label-l * ( label-s + 1 ).
     ELSE.
       t2 = label-l + label-s - ( label-l * label-s ).
     ENDIF.
     t1 = label-l * 2 - t2.
-    label-r = _hue_to_rgb( t1 = t1 t2 = t2 hue = h2 + 2 ) * 255.
-    label-g = _hue_to_rgb( t1 = t1 t2 = t2 hue = h2 ) * 255.
-    label-b = _hue_to_rgb( t1 = t1 t2 = t2 hue = h2 - 2 ) * 255.
+    label-r = _hue_to_rgb( t1 = t1 t2 = t2 hue = hue + 2 ) * 255.
+    label-g = _hue_to_rgb( t1 = t1 t2 = t2 hue = hue ) * 255.
+    label-b = _hue_to_rgb( t1 = t1 t2 = t2 hue = hue - 2 ) * 255.
 
   ENDMETHOD.
 
@@ -1249,24 +1312,33 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
   METHOD _rgba.
 
-    " Background #e8e8e8
+    " Background light mode #e8e8e8, dark mode #333333
     CONSTANTS:
       BEGIN OF c_bg,
         r TYPE i VALUE 232,
         g TYPE i VALUE 232,
         b TYPE i VALUE 232,
-      END OF c_bg.
+      END OF c_bg,
+      BEGIN OF c_bg_dark,
+        r TYPE i VALUE 51,
+        g TYPE i VALUE 51,
+        b TYPE i VALUE 51,
+      END OF c_bg_dark.
 
     DATA:
-      i TYPE ty_p,
       x TYPE x LENGTH 1,
       y TYPE x LENGTH 1,
       z TYPE x LENGTH 1.
 
-    i = 1 - a.
-    x = ( a * r / 255 + i * c_bg-r / 255 ) * 255.
-    y = ( a * g / 255 + i * c_bg-g / 255 ) * 255.
-    z = ( a * b / 255 + i * c_bg-b / 255 ) * 255.
+    IF dark IS INITIAL.
+      x =  a * r + ( 1 - a ) * c_bg-r.
+      y =  a * g + ( 1 - a ) * c_bg-g.
+      z =  a * b + ( 1 - a ) * c_bg-b.
+    ELSE.
+      x =  a * r + ( 1 - a ) * c_bg_dark-r.
+      y =  a * g + ( 1 - a ) * c_bg_dark-g.
+      z =  a * b + ( 1 - a ) * c_bg_dark-b.
+    ENDIF.
 
     result = to_lower( |{ x }{ y }{ z }| ).
 
@@ -1292,7 +1364,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     IF r1 >= r0.
       maxcolor = 1.
     ENDIF.
-    IF r2 >= r1.
+    IF r2 >= r0 AND r2 >= r1.
       maxcolor = 2.
     ENDIF.
     label-h = 0.
