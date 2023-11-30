@@ -42,30 +42,25 @@ DATA gv_repo TYPE c LENGTH 60.
 CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
 
 SELECTION-SCREEN BEGIN OF BLOCK sc_header WITH FRAME TITLE sc_titl0.
-SELECTION-SCREEN:
-SKIP,
-COMMENT /1(77) sc_txt0,
-SKIP,
-COMMENT /1(77) sc_txt1.
+  SELECTION-SCREEN:
+  SKIP,
+  COMMENT /1(77) sc_txt0,
+  SKIP,
+  COMMENT /1(77) sc_txt1.
 SELECTION-SCREEN END OF BLOCK sc_header.
 
 SELECTION-SCREEN SKIP.
 
 SELECTION-SCREEN BEGIN OF BLOCK sc_repo WITH FRAME TITLE sc_titl1.
-SELECTION-SCREEN SKIP.
-PARAMETERS p_pack RADIOBUTTON GROUP g1 DEFAULT 'X' USER-COMMAND repo.
-SELECT-OPTIONS s_pack FOR gv_pack MODIF ID pac.
-SELECTION-SCREEN SKIP.
-PARAMETERS p_repo RADIOBUTTON GROUP g1.
-SELECT-OPTIONS s_repo FOR gv_repo MODIF ID rep.
-SELECTION-SCREEN SKIP.
+  SELECTION-SCREEN SKIP.
+  PARAMETERS p_pack RADIOBUTTON GROUP g1 DEFAULT 'X' USER-COMMAND repo.
+  SELECT-OPTIONS s_pack FOR gv_pack MODIF ID pac.
+  SELECTION-SCREEN SKIP.
+  PARAMETERS p_repo RADIOBUTTON GROUP g1.
+  SELECT-OPTIONS s_repo FOR gv_repo MODIF ID rep.
+  SELECTION-SCREEN SKIP.
 SELECTION-SCREEN END OF BLOCK sc_repo.
 
-*&---------------------------------------------------------------------*
-*&      Form  screen
-*&---------------------------------------------------------------------*
-*       text
-*----------------------------------------------------------------------*
 FORM screen.
 
   DATA lv_input TYPE abap_bool.
@@ -88,7 +83,7 @@ FORM screen.
     MODIFY SCREEN.
   ENDLOOP.
 
-ENDFORM.                    "screen
+ENDFORM.
 
 INITIALIZATION.
 
@@ -98,11 +93,6 @@ INITIALIZATION.
 
   sc_titl1 = 'Repository Selection'.
 
-*&---------------------------------------------------------------------*
-*&      Form  run
-*&---------------------------------------------------------------------*
-*       text
-*----------------------------------------------------------------------*
 FORM run.
 
   DATA: lo_per        TYPE REF TO zcl_abapgit_persist_background,
@@ -110,8 +100,8 @@ FORM run.
         lt_list       TYPE zcl_abapgit_persist_background=>ty_background_keys,
         li_background TYPE REF TO zif_abapgit_background,
         li_log        TYPE REF TO zif_abapgit_log,
-        lv_error TYPE string,
         lx_error      TYPE REF TO zcx_abapgit_exception,
+        lv_error      TYPE string,
         lv_package    TYPE devclass,
         lv_repo_name  TYPE string.
 
@@ -182,7 +172,7 @@ FORM run.
 
   zcl_abapgit_background=>dequeue( ).
 
-ENDFORM.                    "run
+ENDFORM.
 
 AT SELECTION-SCREEN.
 
