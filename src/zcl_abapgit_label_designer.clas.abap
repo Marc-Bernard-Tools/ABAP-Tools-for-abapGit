@@ -3,6 +3,12 @@ CLASS zcl_abapgit_label_designer DEFINITION
   FINAL
   CREATE PUBLIC.
 
+************************************************************************
+* abapGit Label Designer
+*
+* Copyright 2023 Marc Bernard <https://marcf.be/>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     METHODS on_event
