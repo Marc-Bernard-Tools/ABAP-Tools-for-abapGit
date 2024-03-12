@@ -12,7 +12,9 @@
     }
   ],
   "global": {
-    "exclude": [],
+    "exclude": [
+      "zabapgit_repo_transfer.prog.abap"
+    ],
     "files": "/src/**/*.*",
     "noIssues": [],
     "skipGeneratedBOPFInterfaces": false,
@@ -60,7 +62,9 @@
       "defaultKey": true,
       "define": true,
       "describeLines": true,
-      "exclude": [],
+      "exclude": [
+        "zcl_abapgit_label_designer.*"
+      ],
       "severity": "Error",
       "skipQuickFix": false,
       "statics": true,
@@ -488,7 +492,9 @@
       "severity": "Error"
     },
     "local_variable_names": {
-      "exclude": [],
+      "exclude": [
+        "zcl_abapgit_label_designer.*"
+      ],
       "expectedConstant": "^LC_.+$",
       "expectedData": "^L._.+$",
       "expectedFS": "^<L._.+>$",
@@ -864,6 +870,6 @@
     "errorNamespace": "^(LT?CL_|LIF_|Y|Z)",
     "globalConstants": [],
     "globalMacros": [],
-    "version": "v702"
+    "version": "v740SP8"
   }
 }
