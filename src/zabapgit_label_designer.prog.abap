@@ -8,7 +8,9 @@ REPORT zabapgit_label_designer.
 * https://www.w3schools.com/cssref/css_colors.php
 *
 * https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit
-* https://marcbernardtools.com/
+*
+* Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: MIT
 ********************************************************************************
 * The MIT License (MIT)
 *

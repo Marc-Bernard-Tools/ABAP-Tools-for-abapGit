@@ -9,7 +9,9 @@ REPORT zabapgit_scheduler.
 * Docs: https://docs.abapgit.org/user-guide/repo-settings/background-mode.html
 *
 * https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit
-* https://marcbernardtools.com/
+*
+* Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: MIT
 ********************************************************************************
 * MIT License
 *

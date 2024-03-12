@@ -6,7 +6,9 @@ CLASS zcl_abapgit_label_designer DEFINITION
 ************************************************************************
 * abapGit Label Designer
 *
-* Copyright 2023 Marc Bernard <https://marcf.be/>
+* https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit
+*
+* Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.
