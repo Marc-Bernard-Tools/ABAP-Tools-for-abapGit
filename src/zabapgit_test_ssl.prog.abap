@@ -6,7 +6,9 @@ REPORT zabapgit_test_ssl.
 * A tool for testing the SSL connection to GitHub or any other Git server
 *
 * https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit
-* https://marcbernardtools.com/
+*
+* Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: MIT
 ********************************************************************************
 * The MIT License (MIT)
 *

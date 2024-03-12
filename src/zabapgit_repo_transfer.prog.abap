@@ -1,10 +1,11 @@
-REPORT zabapgit_repo_labels.
+REPORT zabapgit_repo_transfer.
 
 ********************************************************************************
-* abapGit Repository Labels
+* abapGit Repository Transfer
 *
-* A tool for doing mass-maintenance of repository labels. Quickly display, add,
-* or remove labels based on free selection of repository name, package, or URL.
+* A tool for doing a mass-transfer of abapGit repositories and settings from
+* one system to another based on a free selection of existing repositories and
+* user settings.
 *
 * https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit
 *
@@ -36,7 +37,7 @@ REPORT zabapgit_repo_labels.
 
 CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
 
-TABLES: tdevc, tdevct.
+TABLES: tdevc, tdevct, usr02.
 
 SELECTION-SCREEN BEGIN OF BLOCK sc_header WITH FRAME TITLE sc_titl0.
   SELECTION-SCREEN:
@@ -53,18 +54,34 @@ SELECTION-SCREEN BEGIN OF BLOCK sc_repo WITH FRAME TITLE sc_titl1.
     s_name FOR tdevct-ctext LOWER CASE,
     s_pack FOR tdevc-devclass,
     s_url  FOR tdevct-ctext LOWER CASE.
+  PARAMETERS:
+    p_online AS CHECKBOX DEFAULT 'X',
+    p_offlin AS CHECKBOX DEFAULT 'X',
+    p_favor  AS CHECKBOX.
 SELECTION-SCREEN END OF BLOCK sc_repo.
 
 SELECTION-SCREEN SKIP.
 
-SELECTION-SCREEN BEGIN OF BLOCK sc_label WITH FRAME TITLE sc_titl2.
-  PARAMETERS:
-    p_list   RADIOBUTTON GROUP g1 DEFAULT 'X' USER-COMMAND lar,
-    p_add    RADIOBUTTON GROUP g1,
-    p_remove RADIOBUTTON GROUP g1.
+SELECTION-SCREEN BEGIN OF BLOCK sc_user WITH FRAME TITLE sc_titl2.
   SELECT-OPTIONS:
-    s_label FOR tdevct-ctext LOWER CASE NO INTERVALS MODIF ID lab.
-SELECTION-SCREEN END OF BLOCK sc_label.
+    s_user FOR usr02-bname.
+SELECTION-SCREEN END OF BLOCK sc_user.
+
+SELECTION-SCREEN SKIP.
+
+SELECTION-SCREEN BEGIN OF BLOCK sc_act WITH FRAME TITLE sc_titl3.
+  PARAMETERS:
+    p_backup RADIOBUTTON GROUP g1 DEFAULT 'X' USER-COMMAND lar,
+    p_restor RADIOBUTTON GROUP g1.
+SELECTION-SCREEN END OF BLOCK sc_act.
+
+SELECTION-SCREEN BEGIN OF BLOCK sc_opt WITH FRAME TITLE sc_titl4.
+  PARAMETERS:
+    p_pull   AS CHECKBOX MODIF ID res,
+    p_chksum AS CHECKBOX MODIF ID res,
+    p_global AS CHECKBOX MODIF ID res,
+    p_user   AS CHECKBOX MODIF ID res.
+SELECTION-SCREEN END OF BLOCK sc_opt.
 
 DATA gt_repos TYPE zif_abapgit_repo_srv=>ty_repo_list.
 
@@ -148,46 +165,38 @@ FORM add_remove.
   DATA:
     li_repo     TYPE REF TO zcl_abapgit_repo,
     ls_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
-    lv_label    TYPE string,
-    lt_labels   TYPE STANDARD TABLE OF string,
     lx_error    TYPE REF TO zcx_abapgit_exception.
 
   FIELD-SYMBOLS:
-    <li_repo>  TYPE REF TO zif_abapgit_repo,
-    <lv_label> LIKE LINE OF s_label.
-
-  IF s_label IS INITIAL.
-    MESSAGE 'Enter at least one label' TYPE 'I'.
-    RETURN.
-  ENDIF.
+    <li_repo>  TYPE REF TO zif_abapgit_repo.
 
   LOOP AT gt_repos ASSIGNING <li_repo>.
     li_repo ?= <li_repo>.
 
     ls_settings = li_repo->get_local_settings( ).
 
-    SPLIT ls_settings-labels AT ',' INTO TABLE lt_labels.
-
-    LOOP AT s_label ASSIGNING <lv_label>.
-      lv_label = condense( <lv_label>-low ).
-      READ TABLE lt_labels TRANSPORTING NO FIELDS WITH KEY table_line = lv_label.
-      IF sy-subrc <> 0 AND p_add = abap_true.
-        INSERT lv_label INTO TABLE lt_labels.
-      ELSEIF sy-subrc = 0 AND p_remove = abap_true.
-        DELETE lt_labels WHERE table_line = lv_label.
-      ENDIF.
-    ENDLOOP.
-
-    CONCATENATE LINES OF lt_labels INTO lv_label SEPARATED BY ','.
-
-    ls_settings-labels = zcl_abapgit_repo_labels=>normalize( lv_label ).
-
-    TRY.
-        li_repo->set_local_settings( ls_settings ).
-        COMMIT WORK AND WAIT.
-      CATCH zcx_abapgit_exception INTO lx_error.
-        MESSAGE lx_error TYPE 'I'.
-    ENDTRY.
+*    SPLIT ls_settings-labels AT ',' INTO TABLE lt_labels.
+*
+*    LOOP AT s_label ASSIGNING <lv_label>.
+*      lv_label = condense( <lv_label>-low ).
+*      READ TABLE lt_labels TRANSPORTING NO FIELDS WITH KEY table_line = lv_label.
+*      IF sy-subrc <> 0 AND p_add = abap_true.
+*        INSERT lv_label INTO TABLE lt_labels.
+*      ELSEIF sy-subrc = 0 AND p_remove = abap_true.
+*        DELETE lt_labels WHERE table_line = lv_label.
+*      ENDIF.
+*    ENDLOOP.
+*
+*    CONCATENATE LINES OF lt_labels INTO lv_label SEPARATED BY ','.
+*
+*    ls_settings-labels = zcl_abapgit_repo_labels=>normalize( lv_label ).
+*
+*    TRY.
+*        li_repo->set_local_settings( ls_settings ).
+*        COMMIT WORK AND WAIT.
+*      CATCH zcx_abapgit_exception INTO lx_error.
+*        MESSAGE lx_error TYPE 'I'.
+*    ENDTRY.
   ENDLOOP.
 
 ENDFORM.
@@ -197,8 +206,8 @@ FORM screen.
   DATA lv_input TYPE abap_bool.
 
   LOOP AT SCREEN.
-    IF screen-group1 = 'LAB'.
-      lv_input = boolc( p_add = abap_true OR p_remove = abap_true ).
+    IF screen-group1 = 'RES'.
+      lv_input = boolc( p_restor = abap_true ).
     ELSE.
       lv_input = abap_true.
     ENDIF.
@@ -217,11 +226,13 @@ ENDFORM.
 INITIALIZATION.
 
   sc_titl0 = 'Description'.
-  sc_txt1  = 'This is a tool for mass-maintenance of repository labels. Quickly'.
-  sc_txt2  = 'display, add, or remove labels based on free selection of repository'.
-  sc_txt3  = 'name, package, or URL.'.
+  sc_txt1  = 'This is a tool for doing a mass-transfer of repositories and'.
+  sc_txt2  = 'settings from one system to another based on a free selection of'.
+  sc_txt3  = 'existing repositories and user settings.'.
   sc_titl1 = 'Repository Selection'.
-  sc_titl2 = 'Action'.
+  sc_titl2 = 'User Selection'.
+  sc_titl3 = 'Action'.
+  sc_titl4 = 'Restore Options'.
 
 AT SELECTION-SCREEN.
 
@@ -236,12 +247,10 @@ START-OF-SELECTION.
   PERFORM get.
 
   CASE abap_true.
-    WHEN p_list.
-      PERFORM list.
-    WHEN p_add.
-      PERFORM add_remove.
-      PERFORM list.
-    WHEN p_remove.
-      PERFORM add_remove.
-      PERFORM list.
+    WHEN p_backup.
+*      PERFORM add_remove.
+*      PERFORM list.
+    WHEN p_restor.
+*      PERFORM add_remove.
+*      PERFORM list.
   ENDCASE.

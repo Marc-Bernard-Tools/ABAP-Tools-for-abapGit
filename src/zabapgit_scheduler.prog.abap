@@ -9,7 +9,9 @@ REPORT zabapgit_scheduler.
 * Docs: https://docs.abapgit.org/user-guide/repo-settings/background-mode.html
 *
 * https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit
-* https://marcbernardtools.com/
+*
+* Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: MIT
 ********************************************************************************
 * MIT License
 *
@@ -101,6 +103,7 @@ FORM run.
         li_background TYPE REF TO zif_abapgit_background,
         li_log        TYPE REF TO zif_abapgit_log,
         lx_error      TYPE REF TO zcx_abapgit_exception,
+        lv_error      TYPE string,
         lv_package    TYPE devclass,
         lv_repo_name  TYPE string.
 
@@ -118,7 +121,8 @@ FORM run.
       lt_list = lo_per->list( ).
 
     CATCH zcx_abapgit_exception INTO lx_error.
-      WRITE / lx_error->get_text( ).
+      lv_error = lx_error->get_text( ).
+      WRITE / lv_error.
   ENDTRY.
 
   WRITE / 'Background mode'.

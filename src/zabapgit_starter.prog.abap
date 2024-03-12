@@ -8,7 +8,9 @@ REPORT zabapgit_starter.
 * repository, or a specific repository based on key or SAP package.
 *
 * https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit
-* https://marcbernardtools.com/
+*
+* Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: MIT
 ********************************************************************************
 * MIT License
 *
