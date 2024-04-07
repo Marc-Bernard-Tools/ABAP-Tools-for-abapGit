@@ -33,11 +33,12 @@ REPORT zabapgit_test_ssl.
 * SOFTWARE.
 ********************************************************************************
 
-CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
+CONSTANTS c_version TYPE string VALUE '1.1.0' ##NEEDED.
+
 
 SELECTION-SCREEN BEGIN OF BLOCK sc_header WITH FRAME TITLE sc_titl1.
   SELECTION-SCREEN SKIP.
-  SELECTION-SCREEN COMMENT /1(77) sc_txt1.
+  SELECTION-SCREEN COMMENT 1(77) sc_txt1.
   SELECTION-SCREEN SKIP.
   SELECTION-SCREEN COMMENT /1(77) sc_txt2.
   SELECTION-SCREEN COMMENT /1(77) sc_txt3.
@@ -49,9 +50,10 @@ SELECTION-SCREEN SKIP.
 SELECTION-SCREEN BEGIN OF BLOCK sc_serv WITH FRAME TITLE sc_titl2.
   PARAMETERS:
     p_url1 TYPE string LOWER CASE DEFAULT 'https://github.com' OBLIGATORY,
-    p_url2 TYPE string LOWER CASE DEFAULT 'https://api.github.com',
-    p_id   TYPE strustssl-applic DEFAULT 'ANONYM' OBLIGATORY.
 * api.github.com is used when pushing code back to github
+    p_url2 TYPE string LOWER CASE DEFAULT 'https://api.github.com',
+    p_id   TYPE strustssl-applic DEFAULT 'ANONYM' OBLIGATORY,
+    p_http TYPE i DEFAULT if_http_request=>co_protocol_version_1_1 OBLIGATORY AS LISTBOX VISIBLE LENGTH 30.
 SELECTION-SCREEN END OF BLOCK sc_serv.
 
 SELECTION-SCREEN SKIP.
@@ -78,6 +80,9 @@ CLASS lcl_report DEFINITION.
     METHODS f4_url
       RETURNING
         VALUE(rv_url) TYPE string.
+
+
+    METHODS http_protocol_list_box.
 
   PRIVATE SECTION.
 
@@ -155,6 +160,8 @@ CLASS lcl_report IMPLEMENTATION.
         password             = p_ppwd ).
     ENDIF.
 
+    li_http_client->request->set_version( p_http ).
+
     li_http_client->send( ).
 
     li_http_client->receive(
@@ -167,7 +174,9 @@ CLASS lcl_report IMPLEMENTATION.
     IF sy-subrc <> 0.
       display_error( 'HTTP Client Receive' ).
 
-      li_http_client->get_last_error( IMPORTING message = lv_response ).
+      li_http_client->get_last_error(
+        IMPORTING
+          message = lv_response ).
 
       display_messages( lv_response ).
 
@@ -313,18 +322,52 @@ CLASS lcl_report IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD http_protocol_list_box.
+
+    DATA:
+      lt_values TYPE vrm_values,
+      ls_value  LIKE LINE OF lt_values.
+
+    ls_value-key = if_http_request=>co_protocol_version_1_0.
+    ls_value-text = 'HTTP/1.0'.
+    APPEND ls_value TO lt_values.
+
+    ls_value-key = if_http_request=>co_protocol_version_1_1.
+    ls_value-text = 'HTTP/1.1'.
+    APPEND ls_value TO lt_values.
+
+    CALL FUNCTION 'VRM_SET_VALUES'
+      EXPORTING
+        id              = 'P_HTTP'
+        values          = lt_values
+      EXCEPTIONS
+        id_illegavrm_id = 1
+        OTHERS          = 2.
+    ASSERT sy-subrc = 0.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 DATA go_report TYPE REF TO lcl_report.
 
 INITIALIZATION.
-  sc_titl1 = 'Description'.
-  sc_txt1  = 'This report tests the connection from this system to a Git server'.
-  sc_txt2  = 'Select or enter the URL of the Git server and run the report. You can'.
-  sc_txt3  = 'test two URLs at the same time, for example, if read and write'.
-  sc_txt4  = 'access require different servers.'.
-  sc_titl2 = 'Git Server'.
-  sc_titl3 = 'Proxy Settings (Optional)'.
+  sc_titl1               = 'Description'.
+  sc_txt1                = 'This report tests the connection from this system to a Git server'.
+  sc_txt2                = 'Select or enter the URL of the Git server and run the report. You can'.
+  sc_txt3                = 'test two URLs at the same time, for example, if read and write'.
+  sc_txt4                = 'access require different servers.'.
+  sc_titl2               = 'Git Server'.
+  %_p_url1_%_app_%-text  = 'URL (Read Access)'.
+  %_p_url2_%_app_%-text  = 'URL (Write Access)'.
+  %_p_id_%_app_%-text    = 'SSL Client Identity'.
+  %_p_http_%_app_%-text  = 'HTTP protocol'.
+  sc_titl3               = 'Proxy Settings (Optional)'.
+  %_p_proxy_%_app_%-text = 'Hostname/IP'.
+  %_p_pport_%_app_%-text = 'Port'.
+  %_p_puser_%_app_%-text = 'Username'.
+  %_p_ppwd_%_app_%-text  = 'Password'.
 
   CREATE OBJECT go_report.
 
@@ -342,6 +385,8 @@ AT SELECTION-SCREEN OUTPUT.
       MODIFY SCREEN.
     ENDIF.
   ENDLOOP.
+
+  go_report->http_protocol_list_box( ).
 
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_url1.
   p_url1 = go_report->f4_url( ).
