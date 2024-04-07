@@ -174,9 +174,7 @@ CLASS lcl_report IMPLEMENTATION.
     IF sy-subrc <> 0.
       display_error( 'HTTP Client Receive' ).
 
-      li_http_client->get_last_error(
-        IMPORTING
-          message = lv_response ).
+      li_http_client->get_last_error( IMPORTING message = lv_response ).
 
       display_messages( lv_response ).
 
@@ -359,15 +357,15 @@ INITIALIZATION.
   sc_txt3                = 'test two URLs at the same time, for example, if read and write'.
   sc_txt4                = 'access require different servers.'.
   sc_titl2               = 'Git Server'.
-  %_p_url1_%_app_%-text  = 'URL (Read Access)'.
-  %_p_url2_%_app_%-text  = 'URL (Write Access)'.
-  %_p_id_%_app_%-text    = 'SSL Client Identity'.
-  %_p_http_%_app_%-text  = 'HTTP protocol'.
+*  %_p_url1_%_app_%-text  = 'URL (Read Access)'
+*  %_p_url2_%_app_%-text  = 'URL (Write Access)'
+*  %_p_id_%_app_%-text    = 'SSL Client Identity'
+*  %_p_http_%_app_%-text  = 'HTTP protocol'
   sc_titl3               = 'Proxy Settings (Optional)'.
-  %_p_proxy_%_app_%-text = 'Hostname/IP'.
-  %_p_pport_%_app_%-text = 'Port'.
-  %_p_puser_%_app_%-text = 'Username'.
-  %_p_ppwd_%_app_%-text  = 'Password'.
+*  %_p_proxy_%_app_%-text = 'Hostname/IP'
+*  %_p_pport_%_app_%-text = 'Port'
+*  %_p_puser_%_app_%-text = 'Username'
+*  %_p_ppwd_%_app_%-text  = 'Password'
 
   CREATE OBJECT go_report.
 

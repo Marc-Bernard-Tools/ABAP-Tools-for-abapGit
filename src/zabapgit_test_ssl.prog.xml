@@ -17,6 +17,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_HTTP</KEY>
+     <ENTRY>HTTP Protocol</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>P_ID</KEY>
      <ENTRY>SSL Client Identity</ENTRY>
      <LENGTH>27</LENGTH>
