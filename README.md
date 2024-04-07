@@ -7,7 +7,7 @@
 
 # Tools for abapGit
 
-This is a collection of little helpers and painkillers for abapGit. Enjoy! :grin:
+This is a collection of helpers and painkillers for abapGit. Enjoy! :grin:
 
 Made by [Marc Bernard Tools](https://marcbernardtools.com/) giving back to the [SAP Community](https://community.sap.com/)
 
