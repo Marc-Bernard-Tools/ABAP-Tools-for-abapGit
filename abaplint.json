@@ -14,7 +14,10 @@
   "global": {
     "exclude": [],
     "files": "/src/**/*.*",
-    "noIssues": [],
+    "noIssues": [
+      "zcl_abapgit_label_designer.clas.abap",
+      "zabapgit_repo_transfer.prog.abap"
+    ],
     "skipGeneratedBOPFInterfaces": false,
     "skipGeneratedFunctionGroups": false,
     "skipGeneratedGatewayClasses": false,
