@@ -72,6 +72,7 @@ CLASS zcl_abapgit_label_designer DEFINITION
       RAISING
         zcx_abapgit_exception.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
     CONSTANTS:
