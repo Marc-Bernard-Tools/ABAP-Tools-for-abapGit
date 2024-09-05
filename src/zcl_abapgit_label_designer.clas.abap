@@ -76,14 +76,14 @@ CLASS zcl_abapgit_label_designer DEFINITION
   PRIVATE SECTION.
 
     CONSTANTS:
-      c_modes TYPE i VALUE 4,
-      c_cols  TYPE i VALUE 8,
+      c_modes TYPE i VALUE 3,
+      " Dark and full modes aren't much different so we ignore them (to see them, change c_modes = 5, c_cols = 10 to see them)
       BEGIN OF c_color_mode,
-        full  TYPE string VALUE '',
+        light TYPE string VALUE ' light',
         white TYPE string VALUE ' on white',
         black TYPE string VALUE ' on black',
-        light TYPE string VALUE ' light',
         dark  TYPE string VALUE ' dark',
+        full  TYPE string VALUE '',
       END OF c_color_mode.
 
     TYPES:
@@ -144,6 +144,7 @@ CLASS zcl_abapgit_label_designer DEFINITION
       mv_dark_mode    TYPE abap_bool,
       mt_labels       TYPE ty_labels,
       mi_viewer       TYPE REF TO zif_abapgit_html_viewer,
+      mv_cols         TYPE i,
       mv_page         TYPE i.
 
     METHODS render_page_1
@@ -252,6 +253,18 @@ CLASS zcl_abapgit_label_designer DEFINITION
       RETURNING
         VALUE(result) TYPE ty_gh_label.
 
+    METHODS _get_screen_size
+      RETURNING
+        VALUE(result) TYPE i.
+
+    METHODS _get_buttons_1
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS _get_buttons_2
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -261,7 +274,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
   METHOD back.
     mv_page = mv_page - 1.
-    IF mv_page = 0.
+    IF mv_page <= 0.
       result = abap_true.
     ENDIF.
   ENDMETHOD.
@@ -326,8 +339,12 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
             render( li_event ).
           WHEN 'save'.
             save( li_event ).
+            mv_page = 1.
+            render( li_event ).
           WHEN 'back'.
-            back( ).
+            IF back( ) IS INITIAL.
+              render( li_event ).
+            ENDIF.
           WHEN OTHERS.
             BREAK-POINT.
         ENDCASE.
@@ -349,6 +366,8 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD render.
+
+    _get_screen_size( ).
 
     CASE mv_page.
       WHEN 1.
@@ -377,7 +396,10 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       |<form method="post" id="form" action="sapevent:preview" class="form { _get_mode_class( ) }">\n| &&
       |<p class="pad">Enter a label text into the labels you want to use in abapGit and select "Preview" at the bottom of the page.</p>\n|.
 
-    LOOP AT mt_groups INTO ls_group.
+    lv_html = lv_html && _get_buttons_1( ).
+
+    " All color groups except "White" since these colors are simply too light
+    LOOP AT mt_groups INTO ls_group WHERE group <> 'white'.
 
       lv_html = lv_html &&
         |<h2 class="pad">{ to_upper( ls_group-group(1) ) }{ ls_group-group+1 } Colors</h2>| &&
@@ -387,7 +409,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
       LOOP AT mt_group_colors INTO ls_group_color WHERE id = ls_group-id.
         LOOP AT mt_colors INTO ls_color WHERE name = ls_group_color-name.
-          IF lv_tabix MOD c_cols = 1.
+          IF lv_tabix MOD mv_cols = 1.
             lv_html = lv_html && |<tr>\n|.
           ENDIF.
 
@@ -412,7 +434,13 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
             |</div>\n| &&
             |</td>\n|.
 
-          IF lv_tabix MOD c_cols = 0.
+          IF lv_tabix MOD c_modes = 0.
+            lv_html = lv_html &&
+              |<td style="padding-left:20px;padding-right:20px;">\n| &&
+              |</td>\n|.
+          ENDIF.
+
+          IF lv_tabix MOD mv_cols = 0.
             lv_html = lv_html && |</tr>\n|.
           ENDIF.
           lv_tabix = lv_tabix + 1.
@@ -422,11 +450,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       lv_html = lv_html && |</table>\n|.
     ENDLOOP.
 
-    lv_html = lv_html &&
-      |<div class="pad">| &&
-      |<input type="submit" value="Preview Selected Labels">\n| &&
-      |<input type="submit" value="Toggle Dark/Light" formaction="sapevent:toggle">\n| &&
-      |</div>| &&
+    lv_html = lv_html && _get_buttons_1( ) &&
       |</form>\n| &&
       |</body></html>\n|.
 
@@ -502,11 +526,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
         io_label_colors = lo_colors ) &&
       |</div>|.
 
-    lv_html = lv_html &&
-      |<div class="pad">| &&
-      |<input type="submit" value="Save Label Designs to Personal Settings" formaction="sapevent:save">&nbsp;&nbsp;| &&
-      |<input type="submit" value="Back" formaction="sapevent:back">\n| &&
-      |</div>| &&
+    lv_html = lv_html && _get_buttons_2( ) &&
       |</form>\n| &&
       |</body></html>\n|.
 
@@ -521,10 +541,14 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
     DATA:
       ls_label  TYPE ty_label,
+      lt_labels TYPE STANDARD TABLE OF ty_label WITH DEFAULT KEY,
       lv_color  TYPE string,
       lv_labels TYPE string.
 
-    LOOP AT mt_labels INTO ls_label.
+    lt_labels = mt_labels.
+    SORT lt_labels BY text.
+
+    LOOP AT lt_labels INTO ls_label.
       lv_labels = lv_labels && |{ ls_label-text }:| &&
         |#{ ls_label-color-fg }/{ ls_label-color-bg }/{ ls_label-color-border }|.
       IF sy-tabix < lines( mt_labels ).
@@ -564,6 +588,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     SET HANDLER on_event FOR mi_viewer.
 
     mv_page      = 1.
+    mv_cols      = _get_screen_size( ).
     mv_dark_mode = iv_dark_mode.
 
     _get_styles( ).
@@ -576,6 +601,28 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     _load_settings( ).
 
     result = me.
+
+  ENDMETHOD.
+
+
+  METHOD _get_buttons_1.
+
+    result =
+      |<div class="pad">| &&
+      |<input type="submit" value="Preview Selected Labels">\n| &&
+      |<input type="submit" value="Toggle Dark/Light" formaction="sapevent:toggle">\n| &&
+      |</div>|.
+
+  ENDMETHOD.
+
+
+  METHOD _get_buttons_2.
+
+    result =
+      |<div class="pad">| &&
+      |<input type="submit" value="Save Label Designs to Personal Settings" formaction="sapevent:save">&nbsp;&nbsp;| &&
+      |<input type="submit" value="Back" formaction="sapevent:back">\n| &&
+      |</div>|.
 
   ENDMETHOD.
 
@@ -801,8 +848,8 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       '07,blue;' &&
       '08,pink;' &&
       '09,purple;' &&
-      '10,white;' &&
-      '11,gray'.
+      '10,gray;' &&
+      '11,white'.
 
     SPLIT lv_groups AT ';' INTO TABLE lt_groups.
     LOOP AT lt_groups INTO lv_groups.
@@ -940,33 +987,33 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       '09,darkslateblue,17;' &&
       '09,rebeccapurple,18;' &&
       '09,indigo,19;' &&
-      '10,white,01;' &&
-      '10,snow,02;' &&
-      '10,honeydew,03;' &&
-      '10,mintcream,04;' &&
-      '10,azure,05;' &&
-      '10,aliceblue,06;' &&
-      '10,ghostwhite,07;' &&
-      '10,whitesmoke,08;' &&
-      '10,seashell,09;' &&
-      '10,beige,10;' &&
-      '10,oldlace,11;' &&
-      '10,floralwhite,12;' &&
-      '10,ivory,13;' &&
-      '10,antiquewhite,14;' &&
-      '10,linen,15;' &&
-      '10,lavenderblush,16;' &&
-      '10,mistyrose,17;' &&
-      '11,gainsboro,01;' &&
-      '11,lightgray,02;' &&
-      '11,silver,03;' &&
-      '11,darkgray,04;' &&
-      '11,dimgray,05;' &&
-      '11,gray,06;' &&
-      '11,lightslategray,07;' &&
-      '11,slategray,08;' &&
-      '11,darkslategray,09;' &&
-      '11,black,10'.
+      '10,gainsboro,01;' &&
+      '10,lightgray,02;' &&
+      '10,silver,03;' &&
+      '10,darkgray,04;' &&
+      '10,dimgray,05;' &&
+      '10,gray,06;' &&
+      '10,lightslategray,07;' &&
+      '10,slategray,08;' &&
+      '10,darkslategray,09;' &&
+      '10,black,10;' &&
+      '11,white,01;' &&
+      '11,snow,02;' &&
+      '11,honeydew,03;' &&
+      '11,mintcream,04;' &&
+      '11,azure,05;' &&
+      '11,aliceblue,06;' &&
+      '11,ghostwhite,07;' &&
+      '11,whitesmoke,08;' &&
+      '11,seashell,09;' &&
+      '11,beige,10;' &&
+      '11,oldlace,11;' &&
+      '11,floralwhite,12;' &&
+      '11,ivory,13;' &&
+      '11,antiquewhite,14;' &&
+      '11,linen,15;' &&
+      '11,lavenderblush,16;' &&
+      '11,mistyrose,17'.
 
     SPLIT lv_group_colors AT ';' INTO TABLE lt_group_colors.
     LOOP AT lt_group_colors INTO lv_group_colors.
@@ -1043,6 +1090,25 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     ELSE.
       result = 'light'.
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD _get_screen_size.
+
+    DATA screen_width TYPE i.
+
+    screen_width = cl_gui_props_consumer=>create_consumer( )->get_metric_factors( )-screen-x.
+
+    IF screen_width >= 1920.
+      result = 3.
+    ELSEIF screen_width >= 1024.
+      result = 2.
+    ELSE.
+      result = 1.
+    ENDIF.
+
+    result = result * c_modes.
+
   ENDMETHOD.
 
 
@@ -1411,8 +1477,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
     TRY.
         ms_settings-label_colors = iv_label_colors.
-        mo_settings->set_user_settings( ms_settings ).
-        zcl_abapgit_persist_factory=>get_settings( )->modify( mo_settings ).
+        zcl_abapgit_persistence_user=>get_instance( )->set_settings( ms_settings ).
       CATCH zcx_abapgit_exception INTO mx_error.
         MESSAGE mx_error TYPE 'E'.
     ENDTRY.
