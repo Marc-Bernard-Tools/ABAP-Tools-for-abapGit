@@ -48,9 +48,9 @@ For convenience, the repository contains the SSL test tool found in the abapGit 
 
 ## Installation
 
-You can install the tools using [abapGit](https://github.com/abapGit/abapGit) either by creating a new online repository for https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit or downloading the repository [ZIP file](https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/archive/main.zip) and creating a new offline repository.
+You can install the tools using [abapGit](https://github.com/abapGit/abapGit) either by creating a new online repository for `https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit` or downloading the repository [ZIP file](https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/archive/main.zip) and creating a new offline repository.
 
-Recommend SAP package: `$ABAPGIT-TOOLS`.
+Recommended SAP package: `$ABAPGIT-TOOLS`.
 
 ## Contributions
 
