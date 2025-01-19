@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/src/zabapgit_starter.prog.abap/c_version&label=Version&color=blue)
+![Version](https://img.shields.io/endpoint?url=https://shield.abappm.com/github/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/src/zabapgit_starter.prog.abap/c_version&label=Version&color=blue)
 [![Slack](https://img.shields.io/badge/Join-Slack-blue)](https://communityinviter.com/apps/abapgit/abap)
 
 [![License](https://img.shields.io/github/license/Marc-Bernard-Tools/ABAP-Tools-for-abapGit?label=License&color=success)](LICENSE)
@@ -9,7 +9,7 @@
 
 This is a collection of helpers and painkillers for abapGit. Enjoy! :grin:
 
-Made by [Marc Bernard Tools](https://marcbernardtools.com/) giving back to the [SAP Community](https://community.sap.com/)
+Made by [Marc Bernard Tools](https://marcbernardtools.com/) giving back to the [SAP Community](https://community.sap.com/).
 
 NO WARRANTIES, [MIT License](LICENSE)
 
@@ -48,9 +48,9 @@ For convenience, the repository contains the SSL test tool found in the abapGit 
 
 ## Installation
 
-You can install the tools using [abapGit](https://github.com/abapGit/abapGit) either by creating a new online repository for https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit or downloading the repository [ZIP file](https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/archive/main.zip) and creating a new offline repository.
+You can install the tools using [abapGit](https://github.com/abapGit/abapGit) either by creating a new online repository for `https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit` or downloading the repository [ZIP file](https://github.com/Marc-Bernard-Tools/ABAP-Tools-for-abapGit/archive/main.zip) and creating a new offline repository.
 
-Recommend SAP package: `$ABAPGIT-TOOLS`.
+Recommended SAP package: `$ABAPGIT-TOOLS`.
 
 ## Contributions
 
@@ -58,10 +58,10 @@ All contributions are welcome! Read our [Contribution Guidelines](CONTRIBUTING.m
 
 ## About
 
-Made with :heart: in Canada
+Made with ❤️ in Canada
 
-Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
+Copyright 2025 Marc Bernard <https://marcbernardtools.com/>
 
-Follow [@marcfbe](https://twitter.com/marcfbe) on Twitter
+Follow [@marcf.be](https://bsky.app/profile/marcf.be) on Bluesky and [@marcfbe](https://linkedin.com/in/marcfbe) on LinkedIn
 
 <p><a href="https://marcbernardtools.com/"><img width="160" height="65" src="https://marcbernardtools.com/info/MBT_Logo_640x250_on_Gray.png" alt="MBT Logo"></a></p>
