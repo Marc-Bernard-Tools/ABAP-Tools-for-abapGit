@@ -1477,7 +1477,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
     TRY.
         ms_settings-label_colors = iv_label_colors.
-        zcl_abapgit_persistence_user=>get_instance( )->set_settings( ms_settings ).
+        zcl_abapgit_persist_factory=>get_user( )->set_settings( ms_settings ).
       CATCH zcx_abapgit_exception INTO mx_error.
         MESSAGE mx_error TYPE 'E'.
     ENDTRY.
