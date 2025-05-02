@@ -91,21 +91,21 @@ INITIALIZATION.
 
   sc_titl0 = 'Description'.
   sc_txt0  = 'Run the background logic for selected abapGit repositories.'.
-  sc_txt1  = 'Simply, define a variant and schedule this program.'.
+  sc_txt1  = 'Define a variant and schedule this program. Done.'.
 
   sc_titl1 = 'Repository Selection'.
 
 FORM run.
 
-  DATA: lo_per        TYPE REF TO zcl_abapgit_persist_background,
-        lo_repo       TYPE REF TO zcl_abapgit_repo_online,
-        lt_list       TYPE zcl_abapgit_persist_background=>ty_background_keys,
-        li_background TYPE REF TO zif_abapgit_background,
-        li_log        TYPE REF TO zif_abapgit_log,
-        lx_error      TYPE REF TO zcx_abapgit_exception,
-        lv_error      TYPE string,
-        lv_package    TYPE devclass,
-        lv_repo_name  TYPE string.
+  DATA:
+    lo_repo       TYPE REF TO zcl_abapgit_repo_online,
+    lt_list       TYPE zif_abapgit_persist_background=>ty_background_keys,
+    li_background TYPE REF TO zif_abapgit_background,
+    li_log        TYPE REF TO zif_abapgit_log,
+    lx_error      TYPE REF TO zcx_abapgit_exception,
+    lv_error      TYPE string,
+    lv_package    TYPE devclass,
+    lv_repo_name  TYPE string.
 
   FIELD-SYMBOLS <ls_list> LIKE LINE OF lt_list.
 
@@ -117,8 +117,7 @@ FORM run.
   ENDTRY.
 
   TRY.
-      CREATE OBJECT lo_per.
-      lt_list = lo_per->list( ).
+      lt_list = zcl_abapgit_persist_factory=>get_background( )->list( ).
 
     CATCH zcx_abapgit_exception INTO lx_error.
       lv_error = lx_error->get_text( ).
@@ -152,9 +151,9 @@ FORM run.
         CREATE OBJECT li_background TYPE (<ls_list>-method).
 
         li_background->run(
-          io_repo     = lo_repo
-          ii_log      = li_log
-          it_settings = <ls_list>-settings ).
+          ii_repo_online = lo_repo
+          ii_log         = li_log
+          it_settings    = <ls_list>-settings ).
 
         li_log->add_success( |Repo { lv_repo_name } processed successfully| ).
 
