@@ -37,7 +37,7 @@ REPORT zabapgit_starter.
 * SPDX-License-Identifier: MIT
 ********************************************************************************
 
-CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
+CONSTANTS c_version TYPE string VALUE '1.1.0' ##NEEDED.
 
 SELECTION-SCREEN BEGIN OF BLOCK sc_header WITH FRAME TITLE sc_titl0.
   SELECTION-SCREEN:
@@ -116,7 +116,7 @@ START-OF-SELECTION.
 
   CASE abap_true.
     WHEN p_list.
-      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( || ).
+      zcl_abapgit_persist_factory=>get_user( )->set_repo_show( || ).
       MESSAGE 'Starting with Repository List' TYPE 'S'.
     WHEN p_last.
       " Use default behavior
@@ -137,7 +137,7 @@ START-OF-SELECTION.
         ENDIF.
         RETURN.
       ENDIF.
-      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
+      zcl_abapgit_persist_factory=>get_user( )->set_repo_show( li_repo->get_key( ) ).
   ENDCASE.
 
   CASE abap_true.
