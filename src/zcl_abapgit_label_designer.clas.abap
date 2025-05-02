@@ -578,7 +578,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       lt_events TYPE cntl_simple_events,
       ls_event  LIKE LINE OF lt_events.
 
-    mi_viewer = zcl_abapgit_ui_factory=>get_html_viewer( ).
+    mi_viewer = zcl_abapgit_ui_core_factory=>get_html_viewer( ).
 
     ls_event-eventid    = mi_viewer->c_id_sapevent.
     ls_event-appl_event = abap_true.
