@@ -142,7 +142,7 @@ FORM run.
 
         WRITE: / <ls_list>-method, lv_repo_name.
 
-        zcl_abapgit_login_manager=>set(
+        zcl_abapgit_login_manager=>set_basic(
           iv_uri      = lo_repo->get_url( )
           iv_username = <ls_list>-username
           iv_password = <ls_list>-password ).
