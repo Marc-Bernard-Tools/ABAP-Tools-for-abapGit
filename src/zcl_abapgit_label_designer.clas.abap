@@ -135,7 +135,7 @@ CLASS zcl_abapgit_label_designer DEFINITION
     DATA:
       mx_error        TYPE REF TO zcx_abapgit_exception,
       mo_settings     TYPE REF TO zcl_abapgit_settings,
-      ms_settings     TYPE zif_abapgit_definitions=>ty_s_user_settings,
+      ms_settings     TYPE zif_abapgit_persist_user=>ty_s_user_settings,
       mo_colors       TYPE REF TO zcl_abapgit_string_map,
       mt_groups       TYPE ty_groups,
       mt_group_colors TYPE ty_group_colors,
@@ -269,7 +269,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_label_designer IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_LABEL_DESIGNER IMPLEMENTATION.
 
 
   METHOD back.
