@@ -56,8 +56,17 @@ AT SELECTION-SCREEN ON EXIT-COMMAND.
 
 START-OF-SELECTION.
 
-  CREATE OBJECT go_gui.
+  DATA:
+    lx_error TYPE REF TO cx_root,
+    lv_msg   TYPE string.
 
-  go_gui->startup( '' )->render( ).
+  TRY.
+      CREATE OBJECT go_gui.
 
-  CALL SELECTION-SCREEN 1001.
+      go_gui->startup( '' )->render( ).
+
+      CALL SELECTION-SCREEN 1001.
+    CATCH cx_root INTO lx_error.
+      lv_msg = lx_error->get_text( ).
+      MESSAGE lv_msg TYPE 'E'.
+  ENDTRY.

@@ -112,33 +112,42 @@ START-OF-SELECTION.
   DATA:
     li_repo_srv TYPE REF TO zif_abapgit_repo_srv,
     li_repo     TYPE REF TO zif_abapgit_repo,
-    lv_reason   TYPE string.
+    lv_reason   TYPE string,
+    lx_error    TYPE REF TO cx_root,
+    lv_msg      TYPE string.
 
-  CASE abap_true.
-    WHEN p_list.
-      zcl_abapgit_persist_factory=>get_user( )->set_repo_show( || ).
-      MESSAGE 'Starting with Repository List' TYPE 'S'.
-    WHEN p_last.
-      " Use default behavior
-      MESSAGE 'Starting with Last Repository' TYPE 'S'.
-    WHEN p_repo.
-      li_repo_srv = zcl_abapgit_repo_srv=>get_instance( ).
-      li_repo_srv->get_repo_from_package(
-        EXPORTING
-          iv_package = p_pack
-        IMPORTING
-          ei_repo    = li_repo
-          ev_reason  = lv_reason ).
-      IF li_repo IS INITIAL.
-        IF lv_reason IS INITIAL.
-          MESSAGE 'No repository found that includes package' TYPE 'S'.
-        ELSE.
-          MESSAGE lv_reason TYPE 'S'.
-        ENDIF.
-        RETURN.
-      ENDIF.
-      zcl_abapgit_persist_factory=>get_user( )->set_repo_show( li_repo->get_key( ) ).
-  ENDCASE.
+  TRY.
+
+      CASE abap_true.
+        WHEN p_list.
+          zcl_abapgit_persist_factory=>get_user( )->set_repo_show( || ).
+          MESSAGE 'Starting with Repository List' TYPE 'S'.
+        WHEN p_last.
+          " Use default behavior
+          MESSAGE 'Starting with Last Repository' TYPE 'S'.
+        WHEN p_repo.
+          li_repo_srv = zcl_abapgit_repo_srv=>get_instance( ).
+          li_repo_srv->get_repo_from_package(
+            EXPORTING
+              iv_package = p_pack
+            IMPORTING
+              ei_repo    = li_repo
+              ev_reason  = lv_reason ).
+          IF li_repo IS INITIAL.
+            IF lv_reason IS INITIAL.
+              MESSAGE 'No repository found that includes package' TYPE 'S'.
+            ELSE.
+              MESSAGE lv_reason TYPE 'S'.
+            ENDIF.
+            RETURN.
+          ENDIF.
+          zcl_abapgit_persist_factory=>get_user( )->set_repo_show( li_repo->get_key( ) ).
+      ENDCASE.
+
+    CATCH cx_root INTO lx_error.
+      lv_msg = lx_error->get_text( ).
+      MESSAGE lv_msg TYPE 'E'.
+  ENDTRY.
 
   CASE abap_true.
     WHEN p_devel.

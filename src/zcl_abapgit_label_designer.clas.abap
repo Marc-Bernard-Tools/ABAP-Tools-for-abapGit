@@ -64,13 +64,9 @@ CLASS zcl_abapgit_label_designer DEFINITION
 
     METHODS back
       RETURNING
-        VALUE(result) TYPE abap_bool
-      RAISING
-        zcx_abapgit_exception.
+        VALUE(result) TYPE abap_bool.
 
-    METHODS free
-      RAISING
-        zcx_abapgit_exception.
+    METHODS free.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -269,7 +265,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_LABEL_DESIGNER IMPLEMENTATION.
+CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD back.
@@ -308,10 +304,13 @@ CLASS ZCL_ABAPGIT_LABEL_DESIGNER IMPLEMENTATION.
 
   METHOD free.
 
-    SET HANDLER on_event FOR mi_viewer ACTIVATION space.
-    mi_viewer->close_document( ).
-    mi_viewer->free( ).
-    FREE mi_viewer.
+    TRY.
+        SET HANDLER on_event FOR mi_viewer ACTIVATION space.
+        mi_viewer->close_document( ).
+        mi_viewer->free( ).
+        FREE mi_viewer.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
