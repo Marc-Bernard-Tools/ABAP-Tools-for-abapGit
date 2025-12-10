@@ -374,7 +374,7 @@ AT SELECTION-SCREEN.
     val   = p_proxy
     regex = 'http(s?)://'
     with  = ''
-    occ   = 1 ).
+    occ   = 1 ) ##REGEX_POSIX.
 
 AT SELECTION-SCREEN OUTPUT.
   LOOP AT SCREEN.
