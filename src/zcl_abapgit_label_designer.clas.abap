@@ -83,7 +83,7 @@ CLASS zcl_abapgit_label_designer DEFINITION
       END OF c_color_mode.
 
     TYPES:
-      ty_p TYPE p LENGTH 10 DECIMALS 4,
+      ty_p TYPE p LENGTH 12 DECIMALS 6,
       BEGIN OF ty_group,
         id    TYPE n LENGTH 2,
         group TYPE string,
@@ -248,6 +248,12 @@ CLASS zcl_abapgit_label_designer DEFINITION
         dark          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE ty_gh_label.
+
+    METHODS _clamp
+      IMPORTING
+        val           TYPE numeric
+      RETURNING
+        VALUE(result) TYPE i.
 
     METHODS _get_screen_size
       RETURNING
@@ -567,7 +573,9 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD show_url.
+
     mi_viewer->show_url( iv_url ).
+
   ENDMETHOD.
 
 
@@ -600,6 +608,14 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     _load_settings( ).
 
     result = me.
+
+  ENDMETHOD.
+
+
+  METHOD _clamp.
+
+    " Return integer between 0 and 255
+    result = nmax( val1 = 0 val2 = nmin( val1 = round( val = val dec = 0 ) val2 = 255 ) ).
 
   ENDMETHOD.
 
@@ -1084,11 +1100,13 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD _get_mode_class.
+
     IF mv_dark_mode = abap_true.
       result = 'dark'.
     ELSE.
       result = 'light'.
     ENDIF.
+
   ENDMETHOD.
 
 
@@ -1194,19 +1212,18 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       lightness_switch    TYPE ty_p,
       lightness_threshold TYPE ty_p,
       background_alpha    TYPE ty_p,
-      border_threshold    TYPE ty_p,
       border_alpha        TYPE ty_p,
       lighten_by          TYPE ty_p.
 
     label = _gh_label( col ).
     _rgb_to_hsl( CHANGING label = label ).
 
-    lightness_threshold = '0.8'. " 0.6
-    background_alpha    = '0.8'." 0.18
-    border_threshold    = '0.96'.
-    border_alpha        = '0.8'.
+    lightness_threshold = '0.6'.
+    background_alpha    = '0.18'.
+    border_alpha        = '0.3'.
     perceived_lightness = ( ( label-r * '0.2126' ) + ( label-g * '0.7152' ) + ( label-b * '0.0722' ) ) / 255.
-    lightness_switch    = nmax( val1 = 0 val2 = nmin( val1 = ( ( 1 / ( lightness_threshold - perceived_lightness ) ) ) val2 = 1 ) ).
+    lightness_switch    = ( perceived_lightness - lightness_threshold ) * -1000.
+    lightness_switch    = nmax( val1 = 0 val2 = nmin( val1 = lightness_switch val2 = 1 ) ).
     lighten_by          = ( lightness_threshold - perceived_lightness ) * lightness_switch.
 
     label-fg     = _hsl( h = label-h s = label-s l = label-l + lighten_by ).
@@ -1269,7 +1286,9 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD _hsl.
+
     result = _hsla( h = h s = s l = l a = 1 ).
+
   ENDMETHOD.
 
 
@@ -1295,20 +1314,27 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       t2  TYPE ty_p.
 
     hue = label-h / 60.
+
     IF label-l <= '0.5'.
       t2 = label-l * ( label-s + 1 ).
     ELSE.
       t2 = label-l + label-s - ( label-l * label-s ).
     ENDIF.
     t1 = label-l * 2 - t2.
+
     label-r = _hue_to_rgb( t1 = t1 t2 = t2 hue = hue + 2 ) * 255.
     label-g = _hue_to_rgb( t1 = t1 t2 = t2 hue = hue ) * 255.
     label-b = _hue_to_rgb( t1 = t1 t2 = t2 hue = hue - 2 ) * 255.
+
+    label-r = _clamp( label-r ).
+    label-g = _clamp( label-g ).
+    label-b = _clamp( label-b ).
 
   ENDMETHOD.
 
 
   METHOD _hue_to_rgb.
+
     IF hue < 0.
       hue = hue + 6.
     ENDIF.
@@ -1324,6 +1350,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     ELSE.
       result = t1.
     ENDIF.
+
   ENDMETHOD.
 
 
@@ -1380,7 +1407,9 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
 
 
   METHOD _rgb.
+
     result = _rgba( r = r g = g b = b a = 1 ).
+
   ENDMETHOD.
 
 
@@ -1400,21 +1429,28 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
       END OF c_bg_dark.
 
     DATA:
-      x TYPE x LENGTH 1,
-      y TYPE x LENGTH 1,
-      z TYPE x LENGTH 1.
+      x     TYPE ty_p,
+      y     TYPE ty_p,
+      z     TYPE ty_p,
+      x_hex TYPE x LENGTH 1,
+      y_hex TYPE x LENGTH 1,
+      z_hex TYPE x LENGTH 1.
 
     IF dark IS INITIAL.
-      x =  a * r + ( 1 - a ) * c_bg-r.
-      y =  a * g + ( 1 - a ) * c_bg-g.
-      z =  a * b + ( 1 - a ) * c_bg-b.
+      x = a * r + ( 1 - a ) * c_bg-r.
+      y = a * g + ( 1 - a ) * c_bg-g.
+      z = a * b + ( 1 - a ) * c_bg-b.
     ELSE.
-      x =  a * r + ( 1 - a ) * c_bg_dark-r.
-      y =  a * g + ( 1 - a ) * c_bg_dark-g.
-      z =  a * b + ( 1 - a ) * c_bg_dark-b.
+      x = a * r + ( 1 - a ) * c_bg_dark-r.
+      y = a * g + ( 1 - a ) * c_bg_dark-g.
+      z = a * b + ( 1 - a ) * c_bg_dark-b.
     ENDIF.
 
-    result = to_lower( |{ x }{ y }{ z }| ).
+    x_hex = _clamp( x ).
+    y_hex = _clamp( y ).
+    z_hex = _clamp( z ).
+
+    result = to_lower( |{ x_hex }{ y_hex }{ z_hex }| ).
 
   ENDMETHOD.
 
@@ -1434,6 +1470,7 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     r2 = label-b / 255.
     min = nmin( val1 = r0 val2 = r1 val3 = r2 ).
     max = nmax( val1 = r0 val2 = r1 val3 = r2 ).
+
     maxcolor = 0.
     IF r1 >= r0.
       maxcolor = 1.
@@ -1456,7 +1493,9 @@ CLASS zcl_abapgit_label_designer IMPLEMENTATION.
     IF label-h < 0.
       label-h = label-h + 360.
     ENDIF.
+
     label-l = ( min + max ) / 2.
+
     IF min = max.
       label-s = 0.
     ELSEIF label-l < '0.5'.
