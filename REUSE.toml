@@ -5,6 +5,7 @@ path = "**/*"
 SPDX-FileCopyrightText = "2025 Marc Bernard <https://marcbernardtools.com/>"
 SPDX-License-Identifier = "MIT"
 
+[[annotations]]
 path = "**/zabapgit_test_ssl.*"
 SPDX-FileCopyrightText = "2014 abapGit Contributors <https://abapgit.org>"
 SPDX-License-Identifier = "MIT"
