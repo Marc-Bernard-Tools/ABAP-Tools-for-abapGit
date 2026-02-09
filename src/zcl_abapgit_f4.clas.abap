@@ -115,7 +115,7 @@ CLASS zcl_abapgit_f4 IMPLEMENTATION.
       ls_return  TYPE ddshretval,
       lt_return  TYPE STANDARD TABLE OF ddshretval WITH DEFAULT KEY.
 
-    SELECT * FROM zabapgit_snaps INTO TABLE lt_content.
+    SELECT * FROM zabapgit_snaps INTO TABLE lt_content ORDER BY PRIMARY KEY ##SUBRC_OK.
 
     LOOP AT lt_content INTO ls_content.
       CLEAR ls_value.

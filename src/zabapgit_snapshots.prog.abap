@@ -183,19 +183,17 @@ ENDFORM.
 
 FORM restore.
 
-  CONSTANTS c_toc_filename TYPE string VALUE '#_Table_of_Content_#.txt'.
+  CONSTANTS lc_toc_filename TYPE string VALUE '#_Table_of_Content_#.txt'.
 
   DATA:
     lv_question TYPE string,
     lv_answer   TYPE c LENGTH 1,
     lo_zip      TYPE REF TO cl_abap_zip,
     lv_zip      TYPE xstring,
-    lv_path     TYPE string,
     lv_filename TYPE string,
     lv_data     TYPE xstring,
     ls_data     TYPE zif_abapgit_persistence=>ty_content,
-    lt_data     TYPE zif_abapgit_persistence=>ty_contents,
-    ls_snap     TYPE zabapgit_snaps.
+    lt_data     TYPE zif_abapgit_persistence=>ty_contents.
 
   FIELD-SYMBOLS:
     <ls_file> LIKE LINE OF lo_zip->files.
@@ -228,7 +226,7 @@ FORM restore.
     STOP.
   ENDIF.
 
-  LOOP AT lo_zip->files ASSIGNING <ls_file> WHERE name <> c_toc_filename.
+  LOOP AT lo_zip->files ASSIGNING <ls_file> WHERE name <> lc_toc_filename.
     CLEAR ls_data.
     lv_filename = <ls_file>-name.
     REPLACE '.xml' IN lv_filename WITH ''.
