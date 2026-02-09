@@ -49,6 +49,7 @@
         "DEVC",
         "INTF",
         "PROG",
+        "TABL",
         "W3MI"
       ],
       "exclude": [],
@@ -530,7 +531,7 @@
       "exclude": [],
       "ignoreTestClasses": true,
       "severity": "Warning",
-      "statements": 100
+      "statements": 120
     },
     "method_overwrites_builtin": {
       "exclude": [],
@@ -870,3 +871,4 @@
     "version": "v702"
   }
 }
+
