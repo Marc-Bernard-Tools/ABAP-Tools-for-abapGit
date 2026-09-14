@@ -33,7 +33,7 @@ REPORT zabapgit_test_ssl.
 * SOFTWARE.
 ********************************************************************************
 
-CONSTANTS c_version TYPE string VALUE '1.1.0' ##NEEDED.
+CONSTANTS c_version TYPE string VALUE '1.2.0' ##NEEDED.
 
 
 SELECTION-SCREEN BEGIN OF BLOCK sc_header WITH FRAME TITLE sc_titl1.
@@ -66,6 +66,21 @@ SELECTION-SCREEN BEGIN OF BLOCK sc_proxy WITH FRAME TITLE sc_titl3.
     p_puser TYPE string LOWER CASE,
     p_ppwd  TYPE string LOWER CASE.
 SELECTION-SCREEN END OF BLOCK sc_proxy.
+
+SELECTION-SCREEN SKIP.
+
+SELECTION-SCREEN BEGIN OF BLOCK sc_butt WITH FRAME TITLE sc_titl4.
+  SELECTION-SCREEN SKIP.
+  SELECTION-SCREEN PUSHBUTTON /1(72) sc_note1 USER-COMMAND note1.
+  SELECTION-SCREEN SKIP.
+  SELECTION-SCREEN PUSHBUTTON /1(72) sc_note2 USER-COMMAND note2.
+  SELECTION-SCREEN SKIP.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN PUSHBUTTON 1(20) sc_smicm USER-COMMAND smicm.
+    SELECTION-SCREEN PUSHBUTTON 27(20) sc_strus USER-COMMAND strust.
+    SELECTION-SCREEN PUSHBUTTON 53(20) sc_rz10 USER-COMMAND rz10.
+  SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN END OF BLOCK sc_butt.
 
 CLASS lcl_report DEFINITION.
 
@@ -136,17 +151,17 @@ CLASS lcl_report IMPLEMENTATION.
 
     cl_http_client=>create_by_url(
       EXPORTING
-        url                 = iv_url
-        ssl_id              = p_id
-        proxy_host          = p_proxy
-        proxy_service       = p_pport
+        url                = iv_url
+        ssl_id             = p_id
+        proxy_host         = p_proxy
+        proxy_service      = p_pport
       IMPORTING
-        client              = li_http_client
+        client             = li_http_client
       EXCEPTIONS
-        argument_not_found  = 1
-        plugin_not_active   = 2
-        internal_error      = 3
-        OTHERS              = 4 ).
+        argument_not_found = 1
+        plugin_not_active  = 2
+        internal_error     = 3
+        OTHERS             = 4 ).
 
     IF sy-subrc <> 0.
       display_error( 'HTTP Client Create' ).
@@ -182,7 +197,7 @@ CLASS lcl_report IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-* if SSL Handshake fails, make sure to also check https://launchpad.support.sap.com/#/notes/510007
+* if SSL Handshake fails, make sure to also check https://me.sap.com/notes/510007
 
     li_http_client->response->get_status(
       IMPORTING
@@ -366,6 +381,12 @@ INITIALIZATION.
 *  %_p_pport_%_app_%-text = 'Port'
 *  %_p_puser_%_app_%-text = 'Username'
 *  %_p_ppwd_%_app_%-text  = 'Password'
+  sc_titl4               = 'Additional Information'.
+  sc_note1               = 'SAP Note 510007 - SSL for Application Server ABAP'.
+  sc_note2               = 'SAP Note 1848999 = Central Note for CommonCryptoLib 8'.
+  sc_smicm               = 'SMICM'.
+  sc_strus               = 'STRUST'.
+  sc_rz10                = 'RZ10'.
 
   CREATE OBJECT go_report.
 
@@ -375,6 +396,19 @@ AT SELECTION-SCREEN.
     regex = 'http(s?)://'
     with  = ''
     occ   = 1 ) ##REGEX_POSIX.
+
+  CASE sy-ucomm.
+    WHEN 'NOTE1'.
+      cl_gui_frontend_services=>execute( document = 'https://me.sap.com/notes/510007' ).
+    WHEN 'NOTE2'.
+      cl_gui_frontend_services=>execute( document = 'https://me.sap.com/notes/1848999' ).
+    WHEN 'SMICM'.
+      CALL TRANSACTION 'SMICM'.
+    WHEN 'STRUST'.
+      CALL TRANSACTION 'STRUST'.
+    WHEN 'RZ10'.
+      CALL TRANSACTION 'RZ10'.
+  ENDCASE.
 
 AT SELECTION-SCREEN OUTPUT.
   LOOP AT SCREEN.
