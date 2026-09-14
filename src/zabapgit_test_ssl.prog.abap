@@ -399,13 +399,9 @@ AT SELECTION-SCREEN.
 
   CASE sy-ucomm.
     WHEN 'NOTE1'.
-      CALL METHOD cl_gui_frontend_services=>execute
-        EXPORTING
-          document = 'https://me.sap.com/notes/510007'.
+      cl_gui_frontend_services=>execute( EXPORTING document = 'https://me.sap.com/notes/510007' ).
     WHEN 'NOTE2'.
-      CALL METHOD cl_gui_frontend_services=>execute
-        EXPORTING
-          document = 'https://me.sap.com/notes/1848999'.
+      cl_gui_frontend_services=>execute( EXPORTING document = 'https://me.sap.com/notes/1848999' ).
     WHEN 'SMICM'.
       CALL TRANSACTION 'SMICM'.
     WHEN 'STRUST'.
